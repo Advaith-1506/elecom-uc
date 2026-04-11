@@ -1,0 +1,2 @@
+# Elecom
+HackSMU VII project
