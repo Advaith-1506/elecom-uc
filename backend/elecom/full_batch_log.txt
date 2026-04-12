@@ -1,0 +1,1077 @@
+/Users/advaith/HackSMU/Elecom/backend/elecom/steps/masking.py:19: UserWarning: With fmin=10.000, sr=48000 and frame_length=8192, less than two periods of fmin fit into the frame, which can cause inaccurate pitch detection. Consider increasing to fmin=11.719 or frame_length=9601.
+  f0 = librosa.yin(audio_segment, fmin=FREQ_MIN, fmax=200.0, sr=sr,
+/Users/advaith/HackSMU/Elecom/backend/elecom/steps/features.py:61: RuntimeWarning: invalid value encountered in log10
+  hnr = 10 * np.log10(r[lag] / (noise_energy + 1e-8))
+Initializing Elephant Communications Pipeline...
+Total rows: 212
+Unique file count: 38
+
+noise_type value_counts:
+noise_type
+vehicle       88
+airplane      86
+generator     22
+mixed         13
+background     3
+Name: count, dtype: int64
+
+Call_type value_counts:
+Call_type
+rumble                200
+trumpet                 6
+bark-rumble             2
+roar                    1
+roar-rumble             1
+rumble-roar-rumble      1
+trumpet-rumble          1
+Name: count, dtype: int64
+
+--- Running validate_phase1() ---
+Filename: 090224-09_generator_01.wav
+Sample rate: 48000 Hz
+Duration: 411.06 seconds
+File size: 37.63 MB
+Applied 20 notch filters
+Median f0: 13.8 Hz
+f0 range: 10.0 to 82.9 Hz
+Voiced frames: 364 / 364
+
+Feature Dictionary (Raw Properties):
+  selection: 14
+  sound_file: 090224-09_generator_01.wav
+  start_time: 50.5826
+  end_time: 53.456
+  call_type: rumble
+  noise_type: generator
+  duration_s: 2.8734
+  f0_hz: 13.8455
+  harmonic_count: 20
+  hnr_db: 6.492
+  hnr_before_db: 4.7224
+  hnr_improvement_db: 1.7696
+  spectral_centroid_hz: 182.2024
+  energy_db: -13.1259
+  fm_depth_hz: 24.3575
+  snr_before_db: 3.5197
+  snr_after_db: 10.9478
+  snr_improvement_db: 7.4281
+  multiple_callers_detected: True
+  cleanability_score: None
+
+✅ Phase 1 PASSED
+
+--- Running Full Batch Pipeline ---
+Filename: 04-040920-02_vehicle_1.wav
+Sample rate: 48000 Hz
+Duration: 57.53 seconds
+File size: 5.27 MB
+Median f0: 23.9 Hz
+f0 range: 10.0 to 126.8 Hz
+Voiced frames: 354 / 354
+✓ Call 1/212 complete — cleanability_score pending, f0=23.9Hz, snr_improvement=-7.55dB
+Median f0: 20.9 Hz
+f0 range: 10.3 to 128.1 Hz
+Voiced frames: 503 / 503
+✓ Call 2/212 complete — cleanability_score pending, f0=20.9Hz, snr_improvement=-8.14dB
+Median f0: 12.5 Hz
+f0 range: 10.0 to 128.6 Hz
+Voiced frames: 793 / 793
+✓ Call 3/212 complete — cleanability_score pending, f0=12.5Hz, snr_improvement=-4.00dB
+Filename: 04-040920-02_vehicle_2.wav
+Sample rate: 48000 Hz
+Duration: 51.47 seconds
+File size: 4.71 MB
+Median f0: 16.2 Hz
+f0 range: 10.0 to 50.7 Hz
+Voiced frames: 513 / 513
+✓ Call 4/212 complete — cleanability_score pending, f0=16.2Hz, snr_improvement=-4.91dB
+Filename: 04-040920-03_vehicle_noise_1.wav
+Sample rate: 48000 Hz
+Duration: 168.98 seconds
+File size: 15.47 MB
+Median f0: 15.0 Hz
+f0 range: 10.0 to 62.2 Hz
+Voiced frames: 603 / 603
+✓ Call 5/212 complete — cleanability_score pending, f0=15.0Hz, snr_improvement=-7.99dB
+Median f0: 24.7 Hz
+f0 range: 11.5 to 131.1 Hz
+Voiced frames: 254 / 254
+✓ Call 6/212 complete — cleanability_score pending, f0=24.7Hz, snr_improvement=-6.84dB
+Median f0: 20.9 Hz
+f0 range: 10.6 to 131.1 Hz
+Voiced frames: 294 / 294
+✓ Call 7/212 complete — cleanability_score pending, f0=20.9Hz, snr_improvement=-12.04dB
+Median f0: 20.9 Hz
+f0 range: 10.2 to 128.6 Hz
+Voiced frames: 508 / 508
+✓ Call 8/212 complete — cleanability_score pending, f0=20.9Hz, snr_improvement=-8.97dB
+Median f0: 14.1 Hz
+f0 range: 10.0 to 30.3 Hz
+Voiced frames: 433 / 433
+✓ Call 9/212 complete — cleanability_score pending, f0=14.1Hz, snr_improvement=6.35dB
+Filename: 04-061218-25_vehicle_noise_1.wav
+Sample rate: 48000 Hz
+Duration: 152.89 seconds
+File size: 14.00 MB
+Median f0: 27.2 Hz
+f0 range: 13.0 to 50.8 Hz
+Voiced frames: 274 / 274
+✓ Call 10/212 complete — cleanability_score pending, f0=27.2Hz, snr_improvement=10.44dB
+Median f0: 23.8 Hz
+f0 range: 10.4 to 27.3 Hz
+Voiced frames: 404 / 404
+✓ Call 11/212 complete — cleanability_score pending, f0=23.8Hz, snr_improvement=11.06dB
+Median f0: 23.9 Hz
+f0 range: 10.5 to 54.1 Hz
+Voiced frames: 409 / 409
+✓ Call 12/212 complete — cleanability_score pending, f0=23.9Hz, snr_improvement=20.32dB
+Filename: 061220-24_airplane_01.wav
+Sample rate: 48000 Hz
+Duration: 45.83 seconds
+File size: 4.20 MB
+Median f0: 30.8 Hz
+f0 range: 10.0 to 68.1 Hz
+Voiced frames: 244 / 244
+✓ Call 13/212 complete — cleanability_score pending, f0=30.8Hz, snr_improvement=19.97dB
+Filename: 090224-09_generator_01.wav
+Sample rate: 48000 Hz
+Duration: 411.06 seconds
+File size: 37.63 MB
+Applied 20 notch filters
+Median f0: 13.8 Hz
+f0 range: 10.0 to 82.9 Hz
+Voiced frames: 364 / 364
+✓ Call 14/212 complete — cleanability_score pending, f0=13.8Hz, snr_improvement=7.43dB
+Median f0: 14.9 Hz
+f0 range: 10.6 to 131.7 Hz
+Voiced frames: 902 / 902
+✓ Call 15/212 complete — cleanability_score pending, f0=14.9Hz, snr_improvement=5.26dB
+Median f0: 14.6 Hz
+f0 range: 10.0 to 80.5 Hz
+Voiced frames: 548 / 548
+✓ Call 16/212 complete — cleanability_score pending, f0=14.6Hz, snr_improvement=8.90dB
+Median f0: 14.0 Hz
+f0 range: 10.0 to 86.7 Hz
+Voiced frames: 468 / 468
+✓ Call 17/212 complete — cleanability_score pending, f0=14.0Hz, snr_improvement=12.00dB
+Median f0: 14.7 Hz
+f0 range: 10.0 to 81.6 Hz
+Voiced frames: 334 / 334
+✓ Call 18/212 complete — cleanability_score pending, f0=14.7Hz, snr_improvement=24.36dB
+Filename: 1989-06_airplane_01.wav
+Sample rate: 48000 Hz
+Duration: 83.04 seconds
+File size: 7.60 MB
+Median f0: 21.2 Hz
+f0 range: 10.3 to 85.1 Hz
+Voiced frames: 723 / 723
+✓ Call 19/212 complete — cleanability_score pending, f0=21.2Hz, snr_improvement=-7.87dB
+Median f0: 16.5 Hz
+f0 range: 10.0 to 41.1 Hz
+Voiced frames: 468 / 468
+✓ Call 20/212 complete — cleanability_score pending, f0=16.5Hz, snr_improvement=10.44dB
+Median f0: 12.5 Hz
+f0 range: 11.3 to 42.2 Hz
+Voiced frames: 379 / 379
+✓ Call 21/212 complete — cleanability_score pending, f0=12.5Hz, snr_improvement=17.16dB
+Filename: 1989-08_airplane_01.wav
+Sample rate: 48000 Hz
+Duration: 115.02 seconds
+File size: 10.53 MB
+Median f0: 29.1 Hz
+f0 range: 14.5 to 89.0 Hz
+Voiced frames: 319 / 319
+✓ Call 22/212 complete — cleanability_score pending, f0=29.1Hz, snr_improvement=7.72dB
+Median f0: 17.2 Hz
+f0 range: 14.3 to 87.7 Hz
+Voiced frames: 334 / 334
+✓ Call 23/212 complete — cleanability_score pending, f0=17.2Hz, snr_improvement=20.43dB
+Median f0: 17.3 Hz
+f0 range: 10.4 to 83.5 Hz
+Voiced frames: 433 / 433
+✓ Call 24/212 complete — cleanability_score pending, f0=17.3Hz, snr_improvement=-1.34dB
+Median f0: 17.0 Hz
+f0 range: 11.8 to 40.9 Hz
+Voiced frames: 274 / 274
+✓ Call 25/212 complete — cleanability_score pending, f0=17.0Hz, snr_improvement=5.15dB
+Median f0: 18.9 Hz
+f0 range: 11.7 to 41.0 Hz
+Voiced frames: 518 / 518
+✓ Call 26/212 complete — cleanability_score pending, f0=18.9Hz, snr_improvement=2.91dB
+Median f0: 15.6 Hz
+f0 range: 11.5 to 82.2 Hz
+Voiced frames: 463 / 463
+✓ Call 27/212 complete — cleanability_score pending, f0=15.6Hz, snr_improvement=6.04dB
+Median f0: 26.5 Hz
+f0 range: 12.2 to 163.1 Hz
+Voiced frames: 384 / 384
+✓ Call 28/212 complete — cleanability_score pending, f0=26.5Hz, snr_improvement=-0.63dB
+Median f0: 14.5 Hz
+f0 range: 10.0 to 31.5 Hz
+Voiced frames: 369 / 369
+✓ Call 29/212 complete — cleanability_score pending, f0=14.5Hz, snr_improvement=-0.97dB
+Median f0: 14.5 Hz
+f0 range: 10.0 to 40.2 Hz
+Voiced frames: 294 / 294
+✓ Call 30/212 complete — cleanability_score pending, f0=14.5Hz, snr_improvement=1.45dB
+Median f0: 19.0 Hz
+f0 range: 10.7 to 37.8 Hz
+Voiced frames: 583 / 583
+✓ Call 31/212 complete — cleanability_score pending, f0=19.0Hz, snr_improvement=15.09dB
+Median f0: 14.6 Hz
+f0 range: 10.4 to 37.5 Hz
+Voiced frames: 349 / 349
+✓ Call 32/212 complete — cleanability_score pending, f0=14.6Hz, snr_improvement=7.89dB
+Median f0: 15.0 Hz
+f0 range: 10.6 to 36.7 Hz
+Voiced frames: 428 / 428
+✓ Call 33/212 complete — cleanability_score pending, f0=15.0Hz, snr_improvement=15.22dB
+Filename: 1989-08_airplane_02.wav
+Sample rate: 48000 Hz
+Duration: 44.43 seconds
+File size: 4.07 MB
+Median f0: 29.2 Hz
+f0 range: 14.4 to 88.5 Hz
+Voiced frames: 339 / 339
+✓ Call 34/212 complete — cleanability_score pending, f0=29.2Hz, snr_improvement=16.50dB
+Median f0: 17.2 Hz
+f0 range: 12.3 to 87.4 Hz
+Voiced frames: 344 / 344
+✓ Call 35/212 complete — cleanability_score pending, f0=17.2Hz, snr_improvement=29.57dB
+Median f0: 17.3 Hz
+f0 range: 10.4 to 31.6 Hz
+Voiced frames: 414 / 414
+✓ Call 36/212 complete — cleanability_score pending, f0=17.3Hz, snr_improvement=6.22dB
+Median f0: 17.0 Hz
+f0 range: 11.7 to 40.9 Hz
+Voiced frames: 264 / 264
+✓ Call 37/212 complete — cleanability_score pending, f0=17.0Hz, snr_improvement=15.04dB
+Median f0: 18.8 Hz
+f0 range: 11.7 to 41.0 Hz
+Voiced frames: 508 / 508
+✓ Call 38/212 complete — cleanability_score pending, f0=18.8Hz, snr_improvement=13.84dB
+Filename: 1989-08_airplane_03.wav
+Sample rate: 48000 Hz
+Duration: 192.06 seconds
+File size: 17.58 MB
+Median f0: 29.1 Hz
+f0 range: 14.4 to 88.4 Hz
+Voiced frames: 309 / 309
+✓ Call 39/212 complete — cleanability_score pending, f0=29.1Hz, snr_improvement=7.03dB
+Median f0: 17.2 Hz
+f0 range: 14.3 to 87.4 Hz
+Voiced frames: 344 / 344
+✓ Call 40/212 complete — cleanability_score pending, f0=17.2Hz, snr_improvement=18.60dB
+Median f0: 17.3 Hz
+f0 range: 10.4 to 31.6 Hz
+Voiced frames: 409 / 409
+✓ Call 41/212 complete — cleanability_score pending, f0=17.3Hz, snr_improvement=-4.92dB
+Median f0: 17.0 Hz
+f0 range: 11.9 to 41.1 Hz
+Voiced frames: 259 / 259
+✓ Call 42/212 complete — cleanability_score pending, f0=17.0Hz, snr_improvement=3.76dB
+Median f0: 19.0 Hz
+f0 range: 11.8 to 41.0 Hz
+Voiced frames: 518 / 518
+✓ Call 43/212 complete — cleanability_score pending, f0=19.0Hz, snr_improvement=0.75dB
+Median f0: 15.4 Hz
+f0 range: 11.6 to 81.1 Hz
+Voiced frames: 533 / 533
+✓ Call 44/212 complete — cleanability_score pending, f0=15.4Hz, snr_improvement=8.77dB
+Median f0: 14.4 Hz
+f0 range: 10.0 to 40.1 Hz
+Voiced frames: 528 / 528
+✓ Call 45/212 complete — cleanability_score pending, f0=14.4Hz, snr_improvement=3.77dB
+Median f0: 15.5 Hz
+f0 range: 10.0 to 39.0 Hz
+Voiced frames: 653 / 653
+✓ Call 46/212 complete — cleanability_score pending, f0=15.5Hz, snr_improvement=3.92dB
+Median f0: 18.9 Hz
+f0 range: 10.4 to 37.7 Hz
+Voiced frames: 568 / 568
+✓ Call 47/212 complete — cleanability_score pending, f0=18.9Hz, snr_improvement=12.29dB
+Median f0: 14.6 Hz
+f0 range: 10.4 to 37.3 Hz
+Voiced frames: 349 / 349
+✓ Call 48/212 complete — cleanability_score pending, f0=14.6Hz, snr_improvement=2.57dB
+Median f0: 15.2 Hz
+f0 range: 10.6 to 38.0 Hz
+Voiced frames: 384 / 384
+✓ Call 49/212 complete — cleanability_score pending, f0=15.2Hz, snr_improvement=14.00dB
+Median f0: 17.6 Hz
+f0 range: 10.0 to 36.1 Hz
+Voiced frames: 339 / 339
+✓ Call 50/212 complete — cleanability_score pending, f0=17.6Hz, snr_improvement=15.33dB
+Median f0: 16.4 Hz
+f0 range: 10.0 to 52.1 Hz
+Voiced frames: 668 / 668
+✓ Call 51/212 complete — cleanability_score pending, f0=16.4Hz, snr_improvement=17.47dB
+Median f0: 15.2 Hz
+f0 range: 10.0 to 30.1 Hz
+Voiced frames: 309 / 309
+✓ Call 52/212 complete — cleanability_score pending, f0=15.2Hz, snr_improvement=-0.29dB
+Median f0: 14.8 Hz
+f0 range: 10.0 to 31.1 Hz
+Voiced frames: 518 / 518
+✓ Call 53/212 complete — cleanability_score pending, f0=14.8Hz, snr_improvement=1.94dB
+Median f0: 14.2 Hz
+f0 range: 10.9 to 39.4 Hz
+Voiced frames: 818 / 818
+✓ Call 54/212 complete — cleanability_score pending, f0=14.2Hz, snr_improvement=14.39dB
+Median f0: 17.2 Hz
+f0 range: 10.1 to 44.7 Hz
+Voiced frames: 299 / 299
+✓ Call 55/212 complete — cleanability_score pending, f0=17.2Hz, snr_improvement=4.88dB
+Median f0: 15.9 Hz
+f0 range: 10.0 to 40.7 Hz
+Voiced frames: 374 / 374
+✓ Call 56/212 complete — cleanability_score pending, f0=15.9Hz, snr_improvement=6.31dB
+Median f0: 14.2 Hz
+f0 range: 10.0 to 48.1 Hz
+Voiced frames: 738 / 738
+✓ Call 57/212 complete — cleanability_score pending, f0=14.2Hz, snr_improvement=9.21dB
+Median f0: 14.2 Hz
+f0 range: 12.7 to 31.1 Hz
+Voiced frames: 254 / 254
+✓ Call 58/212 complete — cleanability_score pending, f0=14.2Hz, snr_improvement=18.75dB
+Filename: 2000-23_background_and_vehicle_noise_2.wav
+Sample rate: 48000 Hz
+Duration: 66.26 seconds
+File size: 6.07 MB
+Applied 20 notch filters
+Median f0: 13.7 Hz
+f0 range: 10.1 to 44.9 Hz
+Voiced frames: 508 / 508
+✓ Call 59/212 complete — cleanability_score pending, f0=13.7Hz, snr_improvement=10.36dB
+Median f0: 15.5 Hz
+f0 range: 10.1 to 39.1 Hz
+Voiced frames: 320 / 320
+✓ Call 60/212 complete — cleanability_score pending, f0=15.5Hz, snr_improvement=-4.28dB
+Median f0: 14.2 Hz
+f0 range: 13.7 to 29.8 Hz
+Voiced frames: 234 / 234
+✓ Call 61/212 complete — cleanability_score pending, f0=14.2Hz, snr_improvement=-4.67dB
+Median f0: 14.7 Hz
+f0 range: 10.0 to 30.0 Hz
+Voiced frames: 498 / 498
+✓ Call 62/212 complete — cleanability_score pending, f0=14.7Hz, snr_improvement=-10.12dB
+Median f0: 13.7 Hz
+f0 range: 10.0 to 31.0 Hz
+Voiced frames: 214 / 214
+✓ Call 63/212 complete — cleanability_score pending, f0=13.7Hz, snr_improvement=2.72dB
+Median f0: 13.9 Hz
+f0 range: 10.0 to 57.4 Hz
+Voiced frames: 518 / 518
+✓ Call 64/212 complete — cleanability_score pending, f0=13.9Hz, snr_improvement=6.01dB
+Filename: 2000-23_background_noise_1.wav
+Sample rate: 48000 Hz
+Duration: 38.75 seconds
+File size: 3.55 MB
+Median f0: 14.1 Hz
+f0 range: 10.0 to 30.8 Hz
+Voiced frames: 503 / 503
+Time window used: 6.57s to 8.57s
+Mean reduction percentage: 87.48%
+WARNING: Multiple elephant callers detected in this segment
+Mask coverage percentage: 1.56%
+Non-zero bin count before smoothing: 32231
+Non-zero bin count after smoothing: 31890
+Mean energy before masking: 0.044314
+Mean energy after masking: 0.014264
+Duration in seconds: 5.35
+Max amplitude: 1.000000
+Saved → output/audio/2000-23_background_noise_1.wav_call_65_cleaned.wav
+✓ Call 65/212 complete — cleanability_score pending, f0=14.1Hz, snr_improvement=6.63dB
+Median f0: 14.8 Hz
+f0 range: 10.0 to 33.5 Hz
+Voiced frames: 523 / 523
+Time window used: 18.81s to 20.81s
+Mean reduction percentage: 87.97%
+WARNING: Multiple elephant callers detected in this segment
+Mask coverage percentage: 1.49%
+Non-zero bin count before smoothing: 32023
+Non-zero bin count after smoothing: 31852
+Mean energy before masking: 0.041031
+Mean energy after masking: 0.023820
+Duration in seconds: 5.57
+Max amplitude: 1.000000
+Saved → output/audio/2000-23_background_noise_1.wav_call_66_cleaned.wav
+✓ Call 66/212 complete — cleanability_score pending, f0=14.8Hz, snr_improvement=-6.16dB
+Median f0: 15.3 Hz
+f0 range: 10.0 to 30.3 Hz
+Voiced frames: 693 / 693
+Time window used: 23.40s to 25.40s
+Mean reduction percentage: 87.44%
+WARNING: Multiple elephant callers detected in this segment
+Mask coverage percentage: 1.37%
+Non-zero bin count before smoothing: 38803
+Non-zero bin count after smoothing: 38543
+Mean energy before masking: 0.076635
+Mean energy after masking: 0.040240
+Duration in seconds: 7.38
+Max amplitude: 1.000000
+Saved → output/audio/2000-23_background_noise_1.wav_call_67_cleaned.wav
+✓ Call 67/212 complete — cleanability_score pending, f0=15.3Hz, snr_improvement=10.53dB
+Filename: 2000-23_background_vehicle_noise.wav
+Sample rate: 48000 Hz
+Duration: 45.84 seconds
+File size: 4.20 MB
+Applied 20 notch filters
+Median f0: 14.2 Hz
+f0 range: 10.0 to 34.3 Hz
+Voiced frames: 443 / 443
+Time window used: 2.38s to 4.38s
+Mean reduction percentage: 88.33%
+WARNING: Multiple elephant callers detected in this segment
+Mask coverage percentage: 1.38%
+Non-zero bin count before smoothing: 24960
+Non-zero bin count after smoothing: 24232
+Mean energy before masking: 0.066197
+Mean energy after masking: 0.042619
+Duration in seconds: 4.71
+Max amplitude: 1.000000
+Saved → output/audio/2000-23_background_vehicle_noise.wav_call_68_cleaned.wav
+✓ Call 68/212 complete — cleanability_score pending, f0=14.2Hz, snr_improvement=0.69dB
+Median f0: 14.7 Hz
+f0 range: 10.0 to 34.8 Hz
+Voiced frames: 443 / 443
+Time window used: 17.33s to 19.33s
+Mean reduction percentage: 88.35%
+WARNING: Multiple elephant callers detected in this segment
+Mask coverage percentage: 1.37%
+Non-zero bin count before smoothing: 24874
+Non-zero bin count after smoothing: 24566
+Mean energy before masking: 0.041212
+Mean energy after masking: 0.025488
+Duration in seconds: 4.71
+Max amplitude: 1.000000
+Saved → output/audio/2000-23_background_vehicle_noise.wav_call_69_cleaned.wav
+✓ Call 69/212 complete — cleanability_score pending, f0=14.7Hz, snr_improvement=6.88dB
+Filename: 2000-23_vehicle_noise_1.wav
+Sample rate: 48000 Hz
+Duration: 210.50 seconds
+File size: 19.27 MB
+Median f0: 14.6 Hz
+f0 range: 10.0 to 36.7 Hz
+Voiced frames: 623 / 623
+Time window used: 4.19s to 6.19s
+Mean reduction percentage: 89.00%
+WARNING: Multiple elephant callers detected in this segment
+Mask coverage percentage: 1.67%
+Non-zero bin count before smoothing: 42560
+Non-zero bin count after smoothing: 42473
+Mean energy before masking: 0.029883
+Mean energy after masking: 0.016358
+Duration in seconds: 6.63
+Max amplitude: 1.000000
+Saved → output/audio/2000-23_vehicle_noise_1.wav_call_70_cleaned.wav
+✓ Call 70/212 complete — cleanability_score pending, f0=14.6Hz, snr_improvement=24.34dB
+Median f0: 15.1 Hz
+f0 range: 10.2 to 44.0 Hz
+Voiced frames: 772 / 772
+Time window used: 62.07s to 64.07s
+Mean reduction percentage: 88.92%
+WARNING: Multiple elephant callers detected in this segment
+Mask coverage percentage: 1.47%
+Non-zero bin count before smoothing: 46410
+Non-zero bin count after smoothing: 45028
+Mean energy before masking: 0.347561
+Mean energy after masking: 0.255513
+Duration in seconds: 8.22
+Max amplitude: 1.000000
+Saved → output/audio/2000-23_vehicle_noise_1.wav_call_71_cleaned.wav
+✓ Call 71/212 complete — cleanability_score pending, f0=15.1Hz, snr_improvement=7.34dB
+Median f0: 14.6 Hz
+f0 range: 10.8 to 76.8 Hz
+Voiced frames: 503 / 503
+Time window used: 134.23s to 136.23s
+Mean reduction percentage: 88.46%
+WARNING: Multiple elephant callers detected in this segment
+Mask coverage percentage: 1.78%
+Non-zero bin count before smoothing: 36764
+Non-zero bin count after smoothing: 36574
+Mean energy before masking: 0.324822
+Mean energy after masking: 0.230460
+Duration in seconds: 5.35
+Max amplitude: 1.000000
+Saved → output/audio/2000-23_vehicle_noise_1.wav_call_72_cleaned.wav
+✓ Call 72/212 complete — cleanability_score pending, f0=14.6Hz, snr_improvement=0.61dB
+Filename: 2000-23_vehicle_noise_2.wav
+Sample rate: 48000 Hz
+Duration: 21.55 seconds
+File size: 1.97 MB
+Median f0: 14.5 Hz
+f0 range: 10.0 to 49.4 Hz
+Voiced frames: 583 / 583
+Time window used: 6.09s to 8.09s
+Mean reduction percentage: 87.94%
+WARNING: Multiple elephant callers detected in this segment
+Mask coverage percentage: 1.55%
+Non-zero bin count before smoothing: 37094
+Non-zero bin count after smoothing: 36997
+Mean energy before masking: 0.057108
+Mean energy after masking: 0.035855
+Duration in seconds: 6.21
+Max amplitude: 1.000000
+Saved → output/audio/2000-23_vehicle_noise_2.wav_call_73_cleaned.wav
+✓ Call 73/212 complete — cleanability_score pending, f0=14.5Hz, snr_improvement=18.62dB
+Filename: 2000-23_vehicle_noise_3.wav
+Sample rate: 48000 Hz
+Duration: 37.14 seconds
+File size: 3.40 MB
+Median f0: 14.0 Hz
+f0 range: 10.1 to 56.5 Hz
+Voiced frames: 613 / 613
+Time window used: 3.80s to 5.80s
+Mean reduction percentage: 86.91%
+WARNING: Multiple elephant callers detected in this segment
+Mask coverage percentage: 1.67%
+Non-zero bin count before smoothing: 41864
+Non-zero bin count after smoothing: 41175
+Mean energy before masking: 0.143308
+Mean energy after masking: 0.101147
+Duration in seconds: 6.53
+Max amplitude: 1.000000
+Saved → output/audio/2000-23_vehicle_noise_3.wav_call_74_cleaned.wav
+✓ Call 74/212 complete — cleanability_score pending, f0=14.0Hz, snr_improvement=17.92dB
+Median f0: 14.3 Hz
+f0 range: 10.0 to 44.1 Hz
+Voiced frames: 738 / 738
+Time window used: 22.14s to 24.14s
+Mean reduction percentage: 85.70%
+WARNING: Multiple elephant callers detected in this segment
+Mask coverage percentage: 1.38%
+Non-zero bin count before smoothing: 41707
+Non-zero bin count after smoothing: 41420
+Mean energy before masking: 0.201931
+Mean energy after masking: 0.112655
+Duration in seconds: 7.86
+Max amplitude: 1.000000
+Saved → output/audio/2000-23_vehicle_noise_3.wav_call_75_cleaned.wav
+✓ Call 75/212 complete — cleanability_score pending, f0=14.3Hz, snr_improvement=21.57dB
+Filename: 2000-23_vehicle_noise_4.wav
+Sample rate: 48000 Hz
+Duration: 72.09 seconds
+File size: 6.60 MB
+Median f0: 14.1 Hz
+f0 range: 10.0 to 43.4 Hz
+Voiced frames: 453 / 453
+Time window used: 4.53s to 6.53s
+Mean reduction percentage: 89.35%
+WARNING: Multiple elephant callers detected in this segment
+Mask coverage percentage: 1.32%
+Non-zero bin count before smoothing: 24453
+Non-zero bin count after smoothing: 23684
+Mean energy before masking: 0.219372
+Mean energy after masking: 0.163279
+Duration in seconds: 4.82
+Max amplitude: 1.000000
+Saved → output/audio/2000-23_vehicle_noise_4.wav_call_76_cleaned.wav
+✓ Call 76/212 complete — cleanability_score pending, f0=14.1Hz, snr_improvement=7.06dB
+Median f0: 14.5 Hz
+f0 range: 10.4 to 43.0 Hz
+Voiced frames: 683 / 683
+Time window used: 12.46s to 14.46s
+Mean reduction percentage: 82.38%
+WARNING: Multiple elephant callers detected in this segment
+Mask coverage percentage: 1.40%
+Non-zero bin count before smoothing: 39210
+Non-zero bin count after smoothing: 39126
+Mean energy before masking: 0.300218
+Mean energy after masking: 0.171553
+Duration in seconds: 7.27
+Max amplitude: 1.000000
+Saved → output/audio/2000-23_vehicle_noise_4.wav_call_77_cleaned.wav
+✓ Call 77/212 complete — cleanability_score pending, f0=14.5Hz, snr_improvement=20.64dB
+Median f0: 13.9 Hz
+f0 range: 10.0 to 41.1 Hz
+Voiced frames: 419 / 419
+Time window used: 24.01s to 26.01s
+Mean reduction percentage: 86.54%
+WARNING: Multiple elephant callers detected in this segment
+Mask coverage percentage: 1.48%
+Non-zero bin count before smoothing: 25460
+Non-zero bin count after smoothing: 24952
+Mean energy before masking: 0.182586
+Mean energy after masking: 0.105001
+Duration in seconds: 4.46
+Max amplitude: 1.000000
+Saved → output/audio/2000-23_vehicle_noise_4.wav_call_78_cleaned.wav
+✓ Call 78/212 complete — cleanability_score pending, f0=13.9Hz, snr_improvement=22.47dB
+Median f0: 15.1 Hz
+f0 range: 10.0 to 55.7 Hz
+Voiced frames: 688 / 688
+Time window used: 37.46s to 39.46s
+Mean reduction percentage: 88.49%
+WARNING: Multiple elephant callers detected in this segment
+Mask coverage percentage: 1.42%
+Non-zero bin count before smoothing: 39922
+Non-zero bin count after smoothing: 39852
+Mean energy before masking: 0.117687
+Mean energy after masking: 0.082770
+Duration in seconds: 7.33
+Max amplitude: 1.000000
+Saved → output/audio/2000-23_vehicle_noise_4.wav_call_79_cleaned.wav
+✓ Call 79/212 complete — cleanability_score pending, f0=15.1Hz, snr_improvement=22.04dB
+Median f0: 14.3 Hz
+f0 range: 10.0 to 28.5 Hz
+Voiced frames: 753 / 753
+Time window used: 49.49s to 51.49s
+Mean reduction percentage: 86.96%
+WARNING: Multiple elephant callers detected in this segment
+Mask coverage percentage: 1.30%
+Non-zero bin count before smoothing: 39953
+Non-zero bin count after smoothing: 39977
+Mean energy before masking: 0.106468
+Mean energy after masking: 0.065648
+Duration in seconds: 8.02
+Max amplitude: 1.000000
+Saved → output/audio/2000-23_vehicle_noise_4.wav_call_80_cleaned.wav
+✓ Call 80/212 complete — cleanability_score pending, f0=14.3Hz, snr_improvement=22.40dB
+Filename: 2000-24_generator_noise_1.wav
+Sample rate: 48000 Hz
+Duration: 101.23 seconds
+File size: 9.27 MB
+Applied 20 notch filters
+Median f0: 13.4 Hz
+f0 range: 10.0 to 26.9 Hz
+Voiced frames: 364 / 364
+Time window used: 54.36s to 56.36s
+Mean reduction percentage: 88.95%
+WARNING: Multiple elephant callers detected in this segment
+Mask coverage percentage: 1.49%
+Non-zero bin count before smoothing: 22268
+Non-zero bin count after smoothing: 22224
+Mean energy before masking: 0.052017
+Mean energy after masking: 0.035938
+Duration in seconds: 3.87
+Max amplitude: 1.000000
+Saved → output/audio/2000-24_generator_noise_1.wav_call_81_cleaned.wav
+✓ Call 81/212 complete — cleanability_score pending, f0=13.4Hz, snr_improvement=18.94dB
+Filename: 2000-24_generator_noise_2.wav
+Sample rate: 48000 Hz
+Duration: 369.59 seconds
+File size: 33.84 MB
+Applied 20 notch filters
+Median f0: 14.8 Hz
+f0 range: 10.0 to 29.2 Hz
+Voiced frames: 443 / 443
+Time window used: 78.16s to 80.16s
+Mean reduction percentage: 89.58%
+WARNING: Multiple elephant callers detected in this segment
+Mask coverage percentage: 1.39%
+Non-zero bin count before smoothing: 25227
+Non-zero bin count after smoothing: 25223
+Mean energy before masking: 0.067434
+Mean energy after masking: 0.049676
+Duration in seconds: 4.71
+Max amplitude: 1.000000
+Saved → output/audio/2000-24_generator_noise_2.wav_call_82_cleaned.wav
+✓ Call 82/212 complete — cleanability_score pending, f0=14.8Hz, snr_improvement=9.71dB
+Median f0: 14.3 Hz
+f0 range: 10.0 to 132.7 Hz
+Voiced frames: 453 / 453
+Time window used: 197.78s to 199.78s
+Mean reduction percentage: 84.30%
+WARNING: Multiple elephant callers detected in this segment
+Mask coverage percentage: 1.62%
+Non-zero bin count before smoothing: 30154
+Non-zero bin count after smoothing: 29907
+Mean energy before masking: 0.183897
+Mean energy after masking: 0.123137
+Duration in seconds: 4.82
+Max amplitude: 1.000000
+Saved → output/audio/2000-24_generator_noise_2.wav_call_83_cleaned.wav
+✓ Call 83/212 complete — cleanability_score pending, f0=14.3Hz, snr_improvement=0.53dB
+Median f0: 12.8 Hz
+f0 range: 10.0 to 36.8 Hz
+Voiced frames: 533 / 533
+Time window used: 212.25s to 214.25s
+Mean reduction percentage: 88.45%
+WARNING: Multiple elephant callers detected in this segment
+Mask coverage percentage: 1.60%
+Non-zero bin count before smoothing: 34943
+Non-zero bin count after smoothing: 34939
+Mean energy before masking: 0.030670
+Mean energy after masking: 0.014072
+Duration in seconds: 5.67
+Max amplitude: 1.000000
+Saved → output/audio/2000-24_generator_noise_2.wav_call_84_cleaned.wav
+✓ Call 84/212 complete — cleanability_score pending, f0=12.8Hz, snr_improvement=15.45dB
+Median f0: 12.9 Hz
+f0 range: 10.0 to 38.9 Hz
+Voiced frames: 752 / 752
+Time window used: 226.40s to 228.40s
+Mean reduction percentage: 89.68%
+WARNING: Multiple elephant callers detected in this segment
+Mask coverage percentage: 1.65%
+Non-zero bin count before smoothing: 50867
+Non-zero bin count after smoothing: 50566
+Mean energy before masking: 0.024971
+Mean energy after masking: 0.015670
+Duration in seconds: 8.01
+Max amplitude: 1.000000
+Saved → output/audio/2000-24_generator_noise_2.wav_call_85_cleaned.wav
+✓ Call 85/212 complete — cleanability_score pending, f0=12.9Hz, snr_improvement=14.62dB
+Median f0: 14.7 Hz
+f0 range: 10.6 to 31.1 Hz
+Voiced frames: 508 / 508
+Time window used: 258.06s to 260.06s
+Mean reduction percentage: 89.60%
+WARNING: Multiple elephant callers detected in this segment
+Mask coverage percentage: 1.61%
+Non-zero bin count before smoothing: 33409
+Non-zero bin count after smoothing: 32178
+Mean energy before masking: 0.037049
+Mean energy after masking: 0.020504
+Duration in seconds: 5.41
+Max amplitude: 1.000000
+Saved → output/audio/2000-24_generator_noise_2.wav_call_86_cleaned.wav
+✓ Call 86/212 complete — cleanability_score pending, f0=14.7Hz, snr_improvement=20.69dB
+Filename: 2000-24_generator_noise_3.wav
+Sample rate: 48000 Hz
+Duration: 41.82 seconds
+File size: 3.83 MB
+Applied 20 notch filters
+Median f0: 17.3 Hz
+f0 range: 10.0 to 119.1 Hz
+Voiced frames: 344 / 344
+Time window used: 8.64s to 10.64s
+Mean reduction percentage: 89.23%
+WARNING: Multiple elephant callers detected in this segment
+Mask coverage percentage: 2.03%
+Non-zero bin count before smoothing: 28591
+Non-zero bin count after smoothing: 28297
+Mean energy before masking: 0.034747
+Mean energy after masking: 0.022669
+Duration in seconds: 3.66
+Max amplitude: 1.000000
+Saved → output/audio/2000-24_generator_noise_3.wav_call_87_cleaned.wav
+✓ Call 87/212 complete — cleanability_score pending, f0=17.3Hz, snr_improvement=23.30dB
+Median f0: 14.8 Hz
+f0 range: 10.0 to 32.1 Hz
+Voiced frames: 628 / 628
+Time window used: 11.94s to 13.94s
+Mean reduction percentage: 89.50%
+WARNING: Multiple elephant callers detected in this segment
+Mask coverage percentage: 1.36%
+Non-zero bin count before smoothing: 34971
+Non-zero bin count after smoothing: 34788
+Mean energy before masking: 0.055295
+Mean energy after masking: 0.036832
+Duration in seconds: 6.69
+Max amplitude: 1.000000
+Saved → output/audio/2000-24_generator_noise_3.wav_call_88_cleaned.wav
+✓ Call 88/212 complete — cleanability_score pending, f0=14.8Hz, snr_improvement=21.26dB
+Filename: 2000-24_generator_noise_4.wav
+Sample rate: 48000 Hz
+Duration: 230.66 seconds
+File size: 21.12 MB
+Applied 20 notch filters
+Median f0: 16.5 Hz
+f0 range: 10.0 to 36.4 Hz
+Voiced frames: 573 / 573
+Time window used: 17.08s to 19.08s
+Mean reduction percentage: 89.22%
+WARNING: Multiple elephant callers detected in this segment
+Mask coverage percentage: 1.59%
+Non-zero bin count before smoothing: 37437
+Non-zero bin count after smoothing: 37585
+Mean energy before masking: 0.067781
+Mean energy after masking: 0.047975
+Duration in seconds: 6.10
+Max amplitude: 1.000000
+Saved → output/audio/2000-24_generator_noise_4.wav_call_89_cleaned.wav
+✓ Call 89/212 complete — cleanability_score pending, f0=16.5Hz, snr_improvement=8.72dB
+Median f0: 13.6 Hz
+f0 range: 10.0 to 32.2 Hz
+Voiced frames: 738 / 738
+Time window used: 70.41s to 72.41s
+Mean reduction percentage: 88.98%
+WARNING: Multiple elephant callers detected in this segment
+Mask coverage percentage: 1.54%
+Non-zero bin count before smoothing: 46663
+Non-zero bin count after smoothing: 46362
+Mean energy before masking: 0.121370
+Mean energy after masking: 0.089431
+Duration in seconds: 7.86
+Max amplitude: 1.000000
+Saved → output/audio/2000-24_generator_noise_4.wav_call_90_cleaned.wav
+✓ Call 90/212 complete — cleanability_score pending, f0=13.6Hz, snr_improvement=1.60dB
+Median f0: 15.0 Hz
+f0 range: 10.0 to 27.9 Hz
+Voiced frames: 616 / 616
+Time window used: 77.00s to 79.00s
+Mean reduction percentage: 89.76%
+WARNING: Multiple elephant callers detected in this segment
+Mask coverage percentage: 1.34%
+Non-zero bin count before smoothing: 33891
+Non-zero bin count after smoothing: 33962
+Mean energy before masking: 0.019476
+Mean energy after masking: 0.010174
+Duration in seconds: 6.56
+Max amplitude: 1.000000
+Saved → output/audio/2000-24_generator_noise_4.wav_call_91_cleaned.wav
+✓ Call 91/212 complete — cleanability_score pending, f0=15.0Hz, snr_improvement=-4.83dB
+Median f0: 12.9 Hz
+f0 range: 10.0 to 27.6 Hz
+Voiced frames: 344 / 344
+Time window used: 82.12s to 84.12s
+Mean reduction percentage: 89.71%
+WARNING: Multiple elephant callers detected in this segment
+Mask coverage percentage: 1.38%
+Non-zero bin count before smoothing: 19404
+Non-zero bin count after smoothing: 19428
+Mean energy before masking: 0.021244
+Mean energy after masking: 0.013136
+Duration in seconds: 3.66
+Max amplitude: 1.000000
+Saved → output/audio/2000-24_generator_noise_4.wav_call_92_cleaned.wav
+✓ Call 92/212 complete — cleanability_score pending, f0=12.9Hz, snr_improvement=-7.88dB
+Median f0: 24.9 Hz
+f0 range: 10.0 to 28.9 Hz
+Voiced frames: 423 / 423
+Time window used: 84.78s to 86.78s
+Mean reduction percentage: 89.59%
+WARNING: Multiple elephant callers detected in this segment
+Mask coverage percentage: 1.80%
+Non-zero bin count before smoothing: 31217
+Non-zero bin count after smoothing: 31216
+Mean energy before masking: 0.017858
+Mean energy after masking: 0.009162
+Duration in seconds: 4.50
+Max amplitude: 1.000000
+Saved → output/audio/2000-24_generator_noise_4.wav_call_93_cleaned.wav
+✓ Call 93/212 complete — cleanability_score pending, f0=24.9Hz, snr_improvement=-0.43dB
+Median f0: 12.1 Hz
+f0 range: 10.0 to 75.0 Hz
+Voiced frames: 618 / 618
+Time window used: 98.19s to 100.19s
+Mean reduction percentage: 89.55%
+WARNING: Multiple elephant callers detected in this segment
+Mask coverage percentage: 1.29%
+Non-zero bin count before smoothing: 32555
+Non-zero bin count after smoothing: 32101
+Mean energy before masking: 0.047473
+Mean energy after masking: 0.030422
+Duration in seconds: 6.58
+Max amplitude: 1.000000
+Saved → output/audio/2000-24_generator_noise_4.wav_call_94_cleaned.wav
+✓ Call 94/212 complete — cleanability_score pending, f0=12.1Hz, snr_improvement=21.30dB
+Median f0: 12.4 Hz
+f0 range: 10.0 to 25.9 Hz
+Voiced frames: 708 / 708
+Time window used: 136.75s to 138.75s
+Mean reduction percentage: 89.57%
+WARNING: Multiple elephant callers detected in this segment
+Mask coverage percentage: 1.20%
+Non-zero bin count before smoothing: 34753
+Non-zero bin count after smoothing: 34514
+Mean energy before masking: 0.064021
+Mean energy after masking: 0.045288
+Duration in seconds: 7.54
+Max amplitude: 1.000000
+Saved → output/audio/2000-24_generator_noise_4.wav_call_95_cleaned.wav
+✓ Call 95/212 complete — cleanability_score pending, f0=12.4Hz, snr_improvement=15.03dB
+Median f0: 12.6 Hz
+f0 range: 10.0 to 27.5 Hz
+Voiced frames: 768 / 768
+Time window used: 193.49s to 195.49s
+Mean reduction percentage: 89.25%
+WARNING: Multiple elephant callers detected in this segment
+Mask coverage percentage: 1.47%
+Non-zero bin count before smoothing: 46219
+Non-zero bin count after smoothing: 45969
+Mean energy before masking: 0.055209
+Mean energy after masking: 0.038731
+Duration in seconds: 8.18
+Max amplitude: 1.000000
+Saved → output/audio/2000-24_generator_noise_4.wav_call_96_cleaned.wav
+✓ Call 96/212 complete — cleanability_score pending, f0=12.6Hz, snr_improvement=18.60dB
+Median f0: 12.5 Hz
+f0 range: 10.0 to 39.4 Hz
+Voiced frames: 698 / 698
+Time window used: 218.36s to 220.36s
+Mean reduction percentage: 89.52%
+WARNING: Multiple elephant callers detected in this segment
+Mask coverage percentage: 1.31%
+Non-zero bin count before smoothing: 37463
+Non-zero bin count after smoothing: 36910
+Mean energy before masking: 0.044699
+Mean energy after masking: 0.031707
+Duration in seconds: 7.43
+Max amplitude: 1.000000
+Saved → output/audio/2000-24_generator_noise_4.wav_call_97_cleaned.wav
+✓ Call 97/212 complete — cleanability_score pending, f0=12.5Hz, snr_improvement=13.85dB
+Filename: 2000-24_vehicle_and_generator_noise_1.wav
+Sample rate: 48000 Hz
+Duration: 107.64 seconds
+File size: 9.85 MB
+Applied 20 notch filters
+Median f0: 12.7 Hz
+f0 range: 10.4 to 47.8 Hz
+Voiced frames: 838 / 838
+Time window used: 19.31s to 21.31s
+Mean reduction percentage: 89.40%
+WARNING: Multiple elephant callers detected in this segment
+Mask coverage percentage: 1.40%
+Non-zero bin count before smoothing: 48153
+Non-zero bin count after smoothing: 48088
+Mean energy before masking: 0.076930
+Mean energy after masking: 0.056719
+Duration in seconds: 8.93
+Max amplitude: 1.000000
+Saved → output/audio/2000-24_vehicle_and_generator_noise_1.wav_call_98_cleaned.wav
+✓ Call 98/212 complete — cleanability_score pending, f0=12.7Hz, snr_improvement=19.21dB
+Median f0: 12.1 Hz
+f0 range: 10.0 to 25.7 Hz
+Voiced frames: 453 / 453
+Time window used: 87.47s to 89.47s
+Mean reduction percentage: 89.59%
+WARNING: Multiple elephant callers detected in this segment
+Mask coverage percentage: 1.33%
+Non-zero bin count before smoothing: 24603
+Non-zero bin count after smoothing: 24249
+Mean energy before masking: 0.031815
+Mean energy after masking: 0.019606
+Duration in seconds: 4.82
+Max amplitude: 1.000000
+Saved → output/audio/2000-24_vehicle_and_generator_noise_1.wav_call_99_cleaned.wav
+✓ Call 99/212 complete — cleanability_score pending, f0=12.1Hz, snr_improvement=14.95dB
+Filename: 2000-24_vehicle_noise_1.wav
+Sample rate: 48000 Hz
+Duration: 302.70 seconds
+File size: 27.71 MB
+Median f0: 21.4 Hz
+f0 range: 10.3 to 47.5 Hz
+Voiced frames: 633 / 633
+Time window used: 8.41s to 10.41s
+Mean reduction percentage: 89.54%
+WARNING: Multiple elephant callers detected in this segment
+Mask coverage percentage: 2.27%
+Non-zero bin count before smoothing: 58838
+Non-zero bin count after smoothing: 58314
+Mean energy before masking: 0.017393
+Mean energy after masking: 0.009094
+Duration in seconds: 6.74
+Max amplitude: 0.999999
+Saved → output/audio/2000-24_vehicle_noise_1.wav_call_100_cleaned.wav
+✓ Call 100/212 complete — cleanability_score pending, f0=21.4Hz, snr_improvement=8.28dB
+Median f0: 13.8 Hz
+f0 range: 10.0 to 54.6 Hz
+Voiced frames: 533 / 533
+Time window used: 17.78s to 19.78s
+Mean reduction percentage: 89.46%
+WARNING: Multiple elephant callers detected in this segment
+Mask coverage percentage: 1.49%
+Non-zero bin count before smoothing: 32465
+Non-zero bin count after smoothing: 31958
+Mean energy before masking: 0.061869
+Mean energy after masking: 0.045390
+Duration in seconds: 5.67
+Max amplitude: 1.000000
+Saved → output/audio/2000-24_vehicle_noise_1.wav_call_101_cleaned.wav
+✓ Call 101/212 complete — cleanability_score pending, f0=13.8Hz, snr_improvement=13.42dB
+Median f0: 12.6 Hz
+f0 range: 10.0 to 66.6 Hz
+Voiced frames: 538 / 538
+Time window used: 25.76s to 27.76s
+Mean reduction percentage: 89.65%
+WARNING: Multiple elephant callers detected in this segment
+Mask coverage percentage: 1.27%
+Non-zero bin count before smoothing: 28052
+Non-zero bin count after smoothing: 27704
+Mean energy before masking: 0.015102
+Mean energy after masking: 0.007495
+Duration in seconds: 5.73
+Max amplitude: 0.999999
+Saved → output/audio/2000-24_vehicle_noise_1.wav_call_102_cleaned.wav
+✓ Call 102/212 complete — cleanability_score pending, f0=12.6Hz, snr_improvement=13.77dB
+Median f0: 20.4 Hz
+f0 range: 10.0 to 67.0 Hz
+Voiced frames: 523 / 523
+Time window used: 42.70s to 44.70s
+Mean reduction percentage: 89.68%
+WARNING: Multiple elephant callers detected in this segment
+Mask coverage percentage: 1.72%
+Non-zero bin count before smoothing: 36855
+Non-zero bin count after smoothing: 36997
+Mean energy before masking: 0.011672
+Mean energy after masking: 0.004506
+Duration in seconds: 5.57
+Max amplitude: 0.999999
+Saved → output/audio/2000-24_vehicle_noise_1.wav_call_103_cleaned.wav
+✓ Call 103/212 complete — cleanability_score pending, f0=20.4Hz, snr_improvement=11.19dB
+Median f0: 20.6 Hz
+f0 range: 10.0 to 66.1 Hz
+Voiced frames: 493 / 493
+Time window used: 69.46s to 71.46s
+Mean reduction percentage: 89.69%
+WARNING: Multiple elephant callers detected in this segment
+Mask coverage percentage: 2.05%
+Non-zero bin count before smoothing: 41323
+Non-zero bin count after smoothing: 41274
+Mean energy before masking: 0.011693
+Mean energy after masking: 0.003778
+Duration in seconds: 5.25
+Max amplitude: 0.999998
+Saved → output/audio/2000-24_vehicle_noise_1.wav_call_104_cleaned.wav
+✓ Call 104/212 complete — cleanability_score pending, f0=20.6Hz, snr_improvement=5.17dB
+Median f0: 18.5 Hz
+f0 range: 10.0 to 60.1 Hz
+Voiced frames: 483 / 483
+Time window used: 88.29s to 90.29s
+Mean reduction percentage: 89.69%
+WARNING: Multiple elephant callers detected in this segment
+Mask coverage percentage: 2.05%
+Non-zero bin count before smoothing: 40511
+Non-zero bin count after smoothing: 40068
+Mean energy before masking: 0.014922
+Mean energy after masking: 0.004925
+Duration in seconds: 5.14
+Max amplitude: 0.999999
+Saved → output/audio/2000-24_vehicle_noise_1.wav_call_105_cleaned.wav
+✓ Call 105/212 complete — cleanability_score pending, f0=18.5Hz, snr_improvement=9.07dB
+Median f0: 18.5 Hz
+f0 range: 10.0 to 54.0 Hz
+Voiced frames: 423 / 423
+Time window used: 117.26s to 119.26s
+Mean reduction percentage: 89.71%
+WARNING: Multiple elephant callers detected in this segment
+Mask coverage percentage: 1.78%
+Non-zero bin count before smoothing: 30844
+Non-zero bin count after smoothing: 30217
+Mean energy before masking: 0.012240
+Mean energy after masking: 0.005766
+Duration in seconds: 4.50
+Max amplitude: 1.000000
+Saved → output/audio/2000-24_vehicle_noise_1.wav_call_106_cleaned.wav
+✓ Call 106/212 complete — cleanability_score pending, f0=18.5Hz, snr_improvement=-4.56dB
+Median f0: 20.1 Hz
+f0 range: 10.0 to 62.0 Hz
+Voiced frames: 518 / 518
+Time window used: 131.20s to 133.20s
+Mean reduction percentage: 89.56%
+WARNING: Multiple elephant callers detected in this segment
+Mask coverage percentage: 1.92%
+Non-zero bin count before smoothing: 40709
+Non-zero bin count after smoothing: 40735
+Mean energy before masking: 0.012980
+Mean energy after masking: 0.004994
+Duration in seconds: 5.51
+Max amplitude: 0.999999
+Saved → output/audio/2000-24_vehicle_noise_1.wav_call_107_cleaned.wav
+✓ Call 107/212 complete — cleanability_score pending, f0=20.1Hz, snr_improvement=10.18dB
+Median f0: 26.7 Hz
+f0 range: 10.0 to 64.8 Hz
+Voiced frames: 508 / 508
+Time window used: 174.37s to 176.37s
+Mean reduction percentage: 88.91%
+WARNING: Multiple elephant callers detected in this segment
+Mask coverage percentage: 2.05%
+Non-zero bin count before smoothing: 42629
+Non-zero bin count after smoothing: 43164
+Mean energy before masking: 0.061684
+Mean energy after masking: 0.028480
+Duration in seconds: 5.41
+Max amplitude: 1.000000

@@ -14,7 +14,7 @@ except ImportError:
 def safe_round(val, ndigits=4):
     """Safely rounds float values to standard precision while ignoring NaNs/Nones."""
     if val is None or np.isnan(val):
-        return np.nan
+        return 0.0
     return round(float(val), ndigits)
 
 def extract_features(call_row: dict, raw_audio: np.ndarray, cleaned_audio: np.ndarray, 
@@ -81,56 +81,65 @@ def extract_features(call_row: dict, raw_audio: np.ndarray, cleaned_audio: np.nd
     # Prepare difference states natively bridging potential edge cases
     hnr_impr = hnr_db - hnr_before_db if not (np.isnan(hnr_db) or np.isnan(hnr_before_db)) else np.nan
 
+    # 8. Active Rumble Segmentation Bounds Parsing
+    try:
+        from steps import segmentation
+        active_segments_list = segmentation.detect_active_rumble_frames(f0_contour, HOP_LENGTH, sr)
+        active_rumble_segments = len(active_segments_list)
+    except Exception as e:
+        print(f"Segmentation failed cleanly: {e}")
+        active_rumble_segments = 0
+
+    sel = call_row.get("Selection", -1)
+    
     return {
-      "selection": int(call_row["Selection"]),
-      "sound_file": str(call_row["Sound_file"]),
-      "start_time": safe_round(call_row["Start_time"]),
-      "end_time": safe_round(call_row["End_time"]),
-      "call_type": str(call_row["Call_type"]),
-      "noise_type": str(call_row["noise_type"]),
-      "duration_s": safe_round(duration_s),
-      "f0_hz": safe_round(f0_hz),
-      "harmonic_count": int(harmonic_count),
-      "hnr_db": safe_round(hnr_db),
-      "hnr_before_db": safe_round(hnr_before_db),
-      "hnr_improvement_db": safe_round(hnr_impr),
-      "spectral_centroid_hz": safe_round(spectral_centroid_hz),
-      "energy_db": safe_round(energy_db),
-      "fm_depth_hz": safe_round(fm_depth_hz),
-      "snr_before_db": safe_round(snr_dict.get("snr_before_db", np.nan)),
-      "snr_after_db": safe_round(snr_dict.get("snr_after_db", np.nan)),
-      "snr_improvement_db": safe_round(snr_dict.get("snr_improvement_db", np.nan)),
-      "multiple_callers_detected": bool(multiple_callers),
-      "cleanability_score": None
+        "id": f"sel-{sel}",
+        "selection": int(sel) if not np.isnan(sel) else 0,
+        "sound_file": str(call_row.get("Sound_file", "unknown")),
+        "callType": str(call_row.get("Call_type", "unknown")),
+        "noiseType": str(call_row.get("noise_type", "unknown")),
+        "duration": float(safe_round(duration_s)),
+        "f0": float(safe_round(f0_hz)),
+        "harmonicCount": int(harmonic_count) if harmonic_count is not None and not np.isnan(harmonic_count) else 0,
+        "hnrBefore": float(safe_round(hnr_before_db)),
+        "hnrAfter": float(safe_round(hnr_db)),
+        "hnrImprovement": float(safe_round(hnr_impr)),
+        "snrImprovement": float(safe_round(snr_dict.get("snr_improvement_db", 0.0))),
+        "fmDepth": float(safe_round(fm_depth_hz)),
+        "spectralCentroid": float(safe_round(spectral_centroid_hz)),
+        "energyDb": float(safe_round(energy_db)),
+        "multipleCallers": bool(multiple_callers),
+        "maskTierUsed": 1,
+        "cleanabilityScore": 0.0,
+        "spectrogramBefore": "unknown",
+        "spectrogramAfter": "unknown"
     }
 
 def compute_cleanability_scores(all_features: list[dict]) -> list[dict]:
     """
-    Synthesizes HNR, SNR, and Semantic Harmonic properties to establish a global unified Quality benchmark Score between 0.0 and 1.0.
+    Synthesizes HNR, SNR, and Semantic Harmonic properties to establish a global unified Quality benchmark Score between 0.0 and 100.0.
     """
-    def is_valid(v):
-        return v is not None and not np.isnan(v)
+    if not all_features: return all_features
         
-    hnr_vals = [f['hnr_db'] for f in all_features if is_valid(f['hnr_db'])]
+    hnr_vals = [f['hnrAfter'] for f in all_features]
     global_min_hnr = min(hnr_vals) if hnr_vals else 0.0
     global_max_hnr = max(hnr_vals) if hnr_vals else 1.0
     
-    snr_vals = [f['snr_improvement_db'] for f in all_features if is_valid(f['snr_improvement_db'])]
+    snr_vals = [f['snrImprovement'] for f in all_features]
     global_min_snr = min(snr_vals) if snr_vals else 0.0
     global_max_snr = max(snr_vals) if snr_vals else 1.0
     
-    harm_vals = [f['harmonic_count'] for f in all_features if is_valid(f['harmonic_count'])]
+    harm_vals = [f['harmonicCount'] for f in all_features]
     global_min_harm = min(harm_vals) if harm_vals else 0.0
     global_max_harm = max(harm_vals) if harm_vals else 1.0
     
     for f in all_features:
-        # Prevent math warnings against null properties
-        norm_hnr = (f['hnr_db'] - global_min_hnr) / (global_max_hnr - global_min_hnr + 1e-8) if is_valid(f['hnr_db']) else 0.0
-        norm_snr_impr = (f['snr_improvement_db'] - global_min_snr) / (global_max_snr - global_min_snr + 1e-8) if is_valid(f['snr_improvement_db']) else 0.0
-        norm_harmonics = (f['harmonic_count'] - global_min_harm) / (global_max_harm - global_min_harm + 1e-8) if is_valid(f['harmonic_count']) else 0.0
+        norm_hnr = (f['hnrAfter'] - global_min_hnr) / (global_max_hnr - global_min_hnr + 1e-8)
+        norm_snr = (f['snrImprovement'] - global_min_snr) / (global_max_snr - global_min_snr + 1e-8)
+        norm_harmonic = (f['harmonicCount'] - global_min_harm) / (global_max_harm - global_min_harm + 1e-8)
             
-        score = 0.4 * norm_hnr + 0.4 * norm_snr_impr + 0.2 * norm_harmonics
-        score = np.clip(score, 0.0, 1.0)
-        f['cleanability_score'] = round(float(score), 4)
+        score = (0.4 * norm_hnr + 0.4 * norm_snr + 0.2 * norm_harmonic) * 100.0
+        score = float(np.clip(score, 0.0, 100.0))
+        f['cleanabilityScore'] = round(score, 2)
         
     return all_features

@@ -81,9 +81,20 @@ def build_harmonic_mask(magnitude: np.ndarray, f0_contour: np.ndarray, freq_bins
     """
     Builds a boolean-like mask preserving the N_HARMONICS of the identified f0 fundamental trace.
     """
+    num_bins, num_frames = magnitude.shape
     mask = np.zeros_like(magnitude)
     
-    for t in range(magnitude.shape[1]):
+    valid_f0 = f0_contour[~np.isnan(f0_contour)]
+    voiced_frame_count = len(valid_f0)
+    
+    if voiced_frame_count < 0.5 * num_frames:
+        print("WARNING: Low f0 confidence, using broadband fallback")
+        bin_min = np.argmin(np.abs(freq_bins - FREQ_MIN))
+        bin_max = np.argmin(np.abs(freq_bins - FREQ_MAX))
+        mask[bin_min:bin_max, :] = 1.0
+        return mask
+    
+    for t in range(num_frames):
         if t >= len(f0_contour):
             continue
             
@@ -115,7 +126,7 @@ def smooth_mask(mask: np.ndarray) -> np.ndarray:
     """
     nonzero_before = np.count_nonzero(mask)
     
-    smoothed = scipy.ndimage.median_filter(mask, size=(1, MASK_KERNEL))
+    smoothed = scipy.ndimage.median_filter(mask, size=(5, MASK_KERNEL))
     
     nonzero_after = np.count_nonzero(smoothed)
     
@@ -129,7 +140,7 @@ def apply_harmonic_mask(magnitude_clean: np.ndarray, mask: np.ndarray) -> np.nda
     """
     mean_energy_before = np.mean(magnitude_clean)
     
-    result = magnitude_clean * mask
+    result = magnitude_clean * mask + (magnitude_clean * 0.3 * (1 - mask))
     
     mean_energy_after = np.mean(result)
     

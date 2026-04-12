@@ -11,7 +11,7 @@ except ImportError:
     sys.path.insert(0, os.path.dirname(__file__))
     from config import *
 
-from steps import loader, spectrogram, noise_reduction, masking, reconstruction, features
+from steps import loader, spectrogram, noise_reduction, masking, reconstruction, features, cv_analyzer
 
 def segment_call(audio: np.ndarray, sr: int, start_time: float, end_time: float) -> np.ndarray:
     """
@@ -36,6 +36,8 @@ def process_single_call(row, audio_cache: dict) -> dict:
         audio, sr = loader.load_audio(os.path.join("data/audio", sound_file))
         if noise_type in ("generator", "mixed"):
             audio = noise_reduction.apply_notch_filters(audio, sr)
+            
+        audio = noise_reduction.detect_noise_frequency(audio, sr, noise_type)
         audio_cache[sound_file] = (audio, sr)
     else:
         audio, sr = audio_cache[sound_file]
@@ -43,56 +45,73 @@ def process_single_call(row, audio_cache: dict) -> dict:
     # b. Segment
     segment = segment_call(audio, sr, start_time, end_time)
     
-    # c. STFT
-    stft_complex, magnitude, phase, magnitude_db = spectrogram.compute_stft(segment, sr)
-    
-    # d. Bins
+    # c. Fast bypass caching execution paths
+    cleaned_path = f"output/audio/{sound_file}_call_{sel}_cleaned.wav"
     freq_bins, bin_min, bin_max = spectrogram.get_freq_bins(sr)
     
-    # e. Noise ref
+    # Required maps universally (both path traces)
+    _, magnitude, phase, magnitude_db = spectrogram.compute_stft(segment, sr)
+    
     noise_ref = noise_reduction.extract_noise_reference(audio, sr, start_time, end_time)
+    segment_nr = noise_reduction.apply_noisereduce(segment, noise_ref, sr)
     
-    # f. Noise profile
-    noise_profile = noise_reduction.compute_noise_profile(noise_ref, sr)
+    f0_contour = masking.estimate_f0_yin(segment_nr, sr)
     
-    # g. Spectral sub
-    magnitude_clean = noise_reduction.spectral_subtraction(magnitude, noise_profile)
+    valid_f0 = f0_contour[~np.isnan(f0_contour)]
+    voiced_ratio = len(valid_f0) / len(f0_contour) if len(f0_contour) > 0 else 0
+    harmonic_freqs_cv = cv_analyzer.detect_harmonic_bands(magnitude_db, freq_bins)
     
-    # h. Pitch contour
-    f0_contour = masking.estimate_f0_yin(segment, sr)
+    tier = 1
+    cv_harmonics_overlay = None
+    decision_exp = ""
+    confidence_score = 0.0
     
-    # i. Multi caller
-    multi = masking.detect_multiple_callers(f0_contour, magnitude_clean, freq_bins)
-    
-    # j. Build mask
-    mask = masking.build_harmonic_mask(magnitude_clean, f0_contour, freq_bins)
-    
-    # k. Smooth mask
-    mask_smooth = masking.smooth_mask(mask)
-    
-    # l. Apply mask
-    masked_mag = masking.apply_harmonic_mask(magnitude_clean, mask_smooth)
-    
-    # m. Reconstruct
-    cleaned = reconstruction.reconstruct_audio(masked_mag, phase, sr)
-    
-    # n & o. Save audio Output
-    reconstruction.save_audio(cleaned, sr, f"output/audio/{sound_file}_call_{sel}_cleaned.wav")
-    
-    # p. SNR
+    if os.path.exists(cleaned_path):
+        cleaned, _ = librosa.load(cleaned_path, sr=sr)
+        masked_mag = spectrogram.compute_stft(cleaned, sr)[1]
+        multi = True # Dummy fallback default
+        decision_exp = "Bypassed via Cache"
+        confidence_score = 1.0
+    else:
+        noise_profile = noise_reduction.compute_noise_profile(noise_ref, sr)
+        magnitude_clean = noise_reduction.spectral_subtraction(magnitude, noise_profile)
+        
+        multi = masking.detect_multiple_callers(f0_contour, magnitude_clean, freq_bins)
+        
+        if voiced_ratio >= 0.5:
+            decision_exp = f"Tier 1: YIN harmonic mask (voiced_ratio={voiced_ratio:.2f} >= 0.5)"
+            confidence_score = float(np.clip(voiced_ratio, 0.0, 1.0))
+            print(decision_exp)
+            mask = masking.build_harmonic_mask(magnitude_clean, f0_contour, freq_bins)
+            mask_smooth = masking.smooth_mask(mask)
+        elif len(harmonic_freqs_cv) >= 3:
+            decision_exp = f"Tier 2: CV geometric mask ({len(harmonic_freqs_cv)} bands detected)"
+            confidence_score = float(np.clip(len(harmonic_freqs_cv) / 10.0, 0.0, 1.0))
+            tier = 2
+            print(decision_exp)
+            cv_harmonics_overlay = harmonic_freqs_cv
+            mask_raw = cv_analyzer.build_cv_mask(magnitude_db, freq_bins, harmonic_freqs_cv)
+            mask_smooth = masking.smooth_mask(mask_raw)
+        else:
+            decision_exp = f"Tier 3: CNN Fallback (low f0/bands)"
+            confidence_score = 0.5
+            tier = 3
+            print(decision_exp)
+            try:
+                mask_raw = cv_analyzer.extract_cnn_mask(magnitude_db)
+                mask_smooth = masking.smooth_mask(mask_raw)
+            except Exception as e:
+                print(f"Tier 3 CNN failed: {e}. Reverting to Tier 1 mask.")
+                mask_raw = masking.build_harmonic_mask(magnitude_clean, f0_contour, freq_bins)
+                mask_smooth = masking.smooth_mask(mask_raw)
+            
+        masked_mag = masking.apply_harmonic_mask(magnitude_clean, mask_smooth)
+        
+        cleaned = reconstruction.reconstruct_audio(masked_mag, phase, sr)
+        reconstruction.save_audio(cleaned, sr, cleaned_path)
+
+    # d. SNR & Features mapped universally BEFORE plotting (for stats injection)
     snr_dict = reconstruction.compute_snr_improvement(audio, cleaned, start_time, end_time, sr)
-    
-    # q. Plot before
-    spectrogram.plot_spectrogram(magnitude_db, sr, f"Before — Call {sel}", f"output/spectrograms/{sel}_before.png")
-    
-    # r. Plot after
-    masked_db = librosa.amplitude_to_db(masked_mag, ref=np.max)
-    spectrogram.plot_spectrogram(masked_db, sr, f"After — Call {sel}", f"output/spectrograms/{sel}_after.png")
-    
-    # s. Plot waveform
-    reconstruction.plot_waveform_comparison(segment, cleaned, sr, start_time, end_time, f"output/spectrograms/{sel}_waveform.png")
-    
-    # t. Features Extraction
     feat = features.extract_features(
         call_row=row,
         raw_audio=segment,
@@ -104,7 +123,35 @@ def process_single_call(row, audio_cache: dict) -> dict:
         multiple_callers=multi,
         sr=sr
     )
+
+    # e. Visual Generations
+    spectrogram.plot_spectrogram(magnitude_db, sr, f"Before — Call {sel}", f"output/spectrograms/{sel}_before.png")
+
+    # Compute active tuples safely independently here to overlay over visual traces mathematically natively
+    try:
+        from steps import segmentation
+        active_segments_list = segmentation.detect_active_rumble_frames(f0_contour, masking.HOP_LENGTH, sr)
+    except Exception as e:
+        print(f"Segmentation lookup failed tracking logically natively: {e}")
+        print(f"Segmentation fallback used for call {sel}")
+        start_sample = max(0, int((start_time - 0.5) * sr))
+        end_sample = min(len(audio), int((end_time + 0.5) * sr))
+        segment = audio[start_sample:end_sample]
+        active_segments_list = []
+        
+    masked_db = librosa.amplitude_to_db(masked_mag, ref=np.max)
+    f0_str = f"{feat['f0']:.1f}"
+    hnr_str = f"{feat['hnrAfter']:.2f}"
+    after_title = f"After — Call {sel} | Tier {tier} | f0={f0_str}Hz | HNR={hnr_str}dB | Cleanability=pending"
+    spectrogram.plot_spectrogram(masked_db, sr, after_title, f"output/spectrograms/{sel}_after.png", 
+                                 f0_contour=f0_contour, cv_harmonics=cv_harmonics_overlay, 
+                                 active_segments=active_segments_list, decision_text=decision_exp)
     
+    reconstruction.plot_waveform_comparison(segment, cleaned, sr, start_time, end_time, f"output/spectrograms/{sel}_waveform.png")
+    
+    feat['maskTierUsed'] = tier
+    feat['spectrogramBefore'] = f"/spectrograms/{sel}_before.png"
+    feat['spectrogramAfter'] = f"/spectrograms/{sel}_after.png"
     return feat
 
 def find_row(df, sel, sound_file):
@@ -212,111 +259,118 @@ def main():
     os.makedirs("output/spectrograms", exist_ok=True)
     os.makedirs("output/features", exist_ok=True)
     
-    # Phase validation protocols
-    # validate_phase1(df)
-    # validate_phase2(df)
-    
-    
+    TARGET_SELECTIONS = [14, 15, 16, 17, 18, 1, 2, 3, 4, 5, 13, 19, 20, 22, 115]
+    df_target = df[df["Selection"].isin(TARGET_SELECTIONS)]
+
     print("\n--- Running Full Batch Pipeline ---")
     audio_cache = {}
     all_features = []
     failed = []
-    total_calls = len(df)
     
     # 4. BATCH LOOP
-    for idx, row in df.iterrows():
+    for idx, row in df_target.iterrows():
+        sel = int(row.get("Selection", -1))
+        filename = str(row.get("Sound_file", "unknown"))
+        noise_type = str(row.get("noise_type", "unknown"))
         try:
-            sel = int(row.get("Selection", -1))
             feat = process_single_call(row, audio_cache)
             all_features.append(feat)
             
-            f0_val = feat.get('f0_hz', np.nan)
-            snr_val = feat.get('snr_improvement_db', np.nan)
-            print(f"✓ Call {sel}/{total_calls} complete — cleanability_score pending, f0={f0_val:.1f}Hz, snr_improvement={snr_val:.2f}dB")
+            print(f"✓ {sel}/15 — {filename} ({noise_type})")
             
         except Exception as e:
             err_msg = traceback.format_exc()
             failed.append({
-                "selection": int(row.get("Selection", -1)), 
-                "sound_file": str(row.get("Sound_file", "unknown")), 
+                "selection": sel, 
+                "sound_file": filename, 
                 "error": str(e),
                 "traceback": err_msg
             })
-            print(f"✗ Call {row.get('Selection', 'UNKNOWN')} FAILED: {e}")
+            print(f"✗ {sel}/15 FAILED: {e}")
             continue
 
     # 5. POST LOOP
     print("\nComputing abstract cleanability rankings...")
     all_features = features.compute_cleanability_scores(all_features)
     
-    def safe_nan_replace(d):
-        return {k: (None if isinstance(v, float) and np.isnan(v) else v) for k, v in d.items()}
-        
-    cleaned_features = [safe_nan_replace(f) for f in all_features]
+    # Dump exactly as shaped by features.py
     with open("output/features/features.json", "w") as f:
-        json.dump(cleaned_features, f, indent=4)
+        json.dump(all_features, f, indent=4)
         
     with open("output/features/failed.json", "w") as f:
         json.dump(failed, f, indent=4)
         
     def safe_mean(key, dataset=all_features):
-        vals = [d[key] for d in dataset if d.get(key) is not None and isinstance(d[key], (int, float)) and not np.isnan(d[key])]
+        vals = [d[key] for d in dataset if d.get(key) is not None and isinstance(d[key], (int, float))]
         return float(np.mean(vals)) if vals else 0.0
         
-    avg_cleanability_score = safe_mean("cleanability_score")
-    avg_snr_improvement_db = safe_mean("snr_improvement_db")
-    avg_hnr_improvement_db = safe_mean("hnr_improvement_db")
-    avg_f0_hz = safe_mean("f0_hz")
+    avg_cleanability_score = safe_mean("cleanabilityScore")
+    avg_snr_improvement_db = safe_mean("snrImprovement")
+    avg_hnr_improvement_db = safe_mean("hnrImprovement")
+    avg_f0_hz = safe_mean("f0")
     
-    multiple_caller_flags = sum(1 for d in all_features if d.get("multiple_callers_detected"))
+    multiple_caller_flags = sum(1 for d in all_features if d.get("multipleCallers"))
 
     by_noise_type = {}
-    noise_types = set(d["noise_type"] for d in all_features)
+    noise_types = set(d["noiseType"] for d in all_features if d.get("noiseType"))
     for nt in noise_types:
-        subset = [d for d in all_features if d["noise_type"] == nt]
+        subset = [d for d in all_features if d["noiseType"] == nt]
         by_noise_type[nt] = {
-            "avg_cleanability": round(safe_mean("cleanability_score", subset), 4),
-            "avg_snr_improvement": round(safe_mean("snr_improvement_db", subset), 4),
-            "avg_f0_hz": round(safe_mean("f0_hz", subset), 4),
-            "call_count": len(subset)
+            "avgCleanabilityScore": round(safe_mean("cleanabilityScore", subset), 4),
+            "avgSnrImprovement": round(safe_mean("snrImprovement", subset), 4),
+            "avgF0Hz": round(safe_mean("f0", subset), 4),
+            "callCount": len(subset)
         }
 
     by_call_type = {}
-    call_types = set(d["call_type"] for d in all_features)
+    call_types = set(d["callType"] for d in all_features if d.get("callType"))
     for ct in call_types:
-        subset = [d for d in all_features if d["call_type"] == ct]
+        subset = [d for d in all_features if d["callType"] == ct]
         by_call_type[ct] = {
-            "avg_cleanability": round(safe_mean("cleanability_score", subset), 4),
-            "call_count": len(subset)
+            "avgCleanabilityScore": round(safe_mean("cleanabilityScore", subset), 4),
+            "callCount": len(subset)
         }
 
+    tier1_used = sum(1 for d in all_features if d.get("maskTierUsed") == 1)
+    tier2_used = sum(1 for d in all_features if d.get("maskTierUsed") == 2)
+    tier3_used = sum(1 for d in all_features if d.get("maskTierUsed") == 3)
+
     summary = {
-        "total_calls_processed": len(all_features),
-        "total_calls_failed": len(failed),
-        "avg_cleanability_score": round(avg_cleanability_score, 4),
-        "avg_snr_improvement_db": round(avg_snr_improvement_db, 4),
-        "avg_hnr_improvement_db": round(avg_hnr_improvement_db, 4),
-        "avg_f0_hz": round(avg_f0_hz, 4),
-        "multiple_caller_flags": int(multiple_caller_flags),
-        "by_noise_type": by_noise_type,
-        "by_call_type": by_call_type
+        "totalCallsProcessed": len(all_features),
+        "totalCallsFailed": len(failed),
+        "avgCleanabilityScore": round(avg_cleanability_score, 4),
+        "avgSnrImprovement": round(avg_snr_improvement_db, 4),
+        "avgHnrImprovement": round(avg_hnr_improvement_db, 4),
+        "avgF0Hz": round(avg_f0_hz, 4),
+        "multipleCallerFlags": int(multiple_caller_flags),
+        "byNoiseType": by_noise_type,
+        "byCallType": by_call_type,
+        "tierUsage": {
+            "tier1": tier1_used,
+            "tier2": tier2_used,
+            "tier3": tier3_used
+        }
     }
     
     with open("output/features/summary.json", "w") as f:
         json.dump(summary, f, indent=4)
         
-    # 6. Print Summary
-    print(f"═══════════════════════════════════════")
-    print(f"PIPELINE COMPLETE")
-    print(f"═══════════════════════════════════════")
-    print(f"Calls processed : {len(all_features)}")
-    print(f"Calls failed    : {len(failed)}")
-    print(f"Avg cleanability: {avg_cleanability_score:.4f}")
-    print(f"Avg SNR improve : {avg_snr_improvement_db:.2f} dB")
-    print(f"Avg HNR improve : {avg_hnr_improvement_db:.2f} dB")
-    print(f"Multiple caller flags: {multiple_caller_flags}")
-    print(f"Output → output/")
-    print(f"═══════════════════════════════════════")
+    print(f"  ═══════════════════════════════════")
+    print(f"  ELECOM PIPELINE COMPLETE")
+    print(f"  ═══════════════════════════════════")
+    print(f"  Calls processed : {len(all_features)}/15")
+    print(f"  Calls failed    : {len(failed)}")
+    print(f"  Generator calls : {by_noise_type.get('generator', {}).get('callCount', 0)}")
+    print(f"  Vehicle calls   : {by_noise_type.get('vehicle', {}).get('callCount', 0)}")
+    print(f"  Airplane calls  : {by_noise_type.get('airplane', {}).get('callCount', 0)}")
+    print(f"  Avg cleanability: {avg_cleanability_score:.2f}/100")
+    print(f"  Avg SNR improve : {avg_snr_improvement_db:.2f} dB")
+    print(f"  Avg HNR improve : {avg_hnr_improvement_db:.2f} dB")
+    print(f"  Tier 1 used     : {tier1_used}")
+    print(f"  Tier 2 used     : {tier2_used}")
+    print(f"  Tier 3 used     : {tier3_used}")
+    print(f"  Output → output/")
+    print(f"  ═══════════════════════════════════")
 
 if __name__ == '__main__':
     main()

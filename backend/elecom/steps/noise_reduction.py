@@ -3,6 +3,21 @@ import sys
 import numpy as np
 import scipy.signal
 import librosa
+import noisereduce as nr
+
+# Add parent directory to path to allow direct import from config
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from config import *
+
+def apply_noisereduce(audio_segment: np.ndarray, noise_reference: np.ndarray, sr: int) -> np.ndarray:
+    cleaned = nr.reduce_noise(
+        y=audio_segment,
+        sr=sr,
+        y_noise=noise_reference,
+        prop_decrease=0.8,
+        stationary=False
+    )
+    return cleaned
 
 # Add parent directory to path to allow direct import from config
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -23,6 +38,39 @@ def apply_notch_filters(audio: np.ndarray, sr: int) -> np.ndarray:
         
     print(f"Applied {n} notch filters")
     return filtered
+
+def detect_noise_frequency(audio: np.ndarray, sr: int, noise_type: str) -> np.ndarray:
+    """
+    Adaptive frequency filter logic utilizing Welch spectrum peaks dynamically explicitly targeted to properties natively filtering out noise bounds logically safely structurally.
+    """
+    if noise_type == "vehicle":
+        f, Pxx = scipy.signal.welch(audio, fs=sr, nperseg=N_FFT)
+        valid_idx = np.where((f >= 20) & (f <= 100))[0]
+        if len(valid_idx) > 0:
+            dom_idx = valid_idx[np.argmax(Pxx[valid_idx])]
+            dom_f = f[dom_idx]
+            b, a = scipy.signal.iirnotch(dom_f, Q=15, fs=sr)
+            audio = scipy.signal.filtfilt(b, a, audio)
+            print(f"Vehicle noise peak detected at {dom_f:.1f} Hz — removed")
+            
+    elif noise_type == "airplane":
+        f, Pxx = scipy.signal.welch(audio, fs=sr, nperseg=N_FFT)
+        valid_idx = np.where((f >= 50) & (f <= 200))[0]
+        if len(valid_idx) > 0:
+            valid_f = f[valid_idx]
+            valid_Pxx = Pxx[valid_idx]
+            peaks, _ = scipy.signal.find_peaks(valid_Pxx)
+            if len(peaks) > 0:
+                peak_Pxx = valid_Pxx[peaks]
+                top_idx = np.argsort(peak_Pxx)[-3:]
+                top_peaks = peaks[top_idx]
+                for p in top_peaks:
+                    dom_f = valid_f[p]
+                    b, a = scipy.signal.iirnotch(dom_f, Q=20, fs=sr)
+                    audio = scipy.signal.filtfilt(b, a, audio)
+                    print(f"Airplane noise peak detected at {dom_f:.1f} Hz — removed")
+                    
+    return audio
 
 def extract_noise_reference(audio: np.ndarray, sr: int, call_start_time: float, call_end_time: float) -> np.ndarray:
     """
