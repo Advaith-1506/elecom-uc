@@ -1,34 +1,34 @@
 {
     "totalCallsProcessed": 15,
     "totalCallsFailed": 0,
-    "avgCleanabilityScore": 43.912,
-    "avgSnrImprovement": 4.9434,
-    "avgHnrImprovement": 1.2551,
-    "avgF0Hz": 16.2856,
-    "multipleCallerFlags": 15,
+    "avgCleanabilityScore": 36.8213,
+    "avgSnrImprovement": 10.7266,
+    "avgHnrImprovement": -0.1617,
+    "avgF0Hz": 16.6488,
+    "multipleCallerFlags": 14,
     "byNoiseType": {
         "generator": {
-            "avgCleanabilityScore": 54.652,
-            "avgSnrImprovement": 9.1078,
-            "avgF0Hz": 14.4233,
+            "avgCleanabilityScore": 47.466,
+            "avgSnrImprovement": 13.7174,
+            "avgF0Hz": 14.7017,
             "callCount": 5
         },
         "vehicle": {
-            "avgCleanabilityScore": 22.412,
-            "avgSnrImprovement": -6.5754,
-            "avgF0Hz": 18.309,
+            "avgCleanabilityScore": 9.584,
+            "avgSnrImprovement": -7.1165,
+            "avgF0Hz": 20.2276,
             "callCount": 5
         },
         "airplane": {
-            "avgCleanabilityScore": 54.672,
-            "avgSnrImprovement": 12.2979,
-            "avgF0Hz": 16.1244,
+            "avgCleanabilityScore": 53.414,
+            "avgSnrImprovement": 25.5789,
+            "avgF0Hz": 15.0171,
             "callCount": 5
         }
     },
     "byCallType": {
         "rumble": {
-            "avgCleanabilityScore": 43.912,
+            "avgCleanabilityScore": 36.8213,
             "callCount": 15
         }
     },

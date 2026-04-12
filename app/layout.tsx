@@ -1,15 +1,16 @@
 import type { Metadata } from 'next'
-import { Space_Grotesk, Space_Mono, Outfit } from 'next/font/google'
+import { Inter, Geist_Mono, DM_Mono, Unbounded } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 
-const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], variable: "--font-grotesk" });
-const spaceMono = Space_Mono({ subsets: ["latin"], weight: ["400", "700"], variable: "--font-mono" });
-const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+const _geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono" });
+const dmMono = DM_Mono({ subsets: ["latin"], weight: ["400", "500"], variable: "--font-dm-mono" });
+const unbounded = Unbounded({ subsets: ["latin"], weight: ["700"], variable: "--font-unbounded" });
 
 export const metadata: Metadata = {
-  title: 'ElephantVoices Signal Lab',
-  description: 'Bioacoustics research dashboard for elephant call analysis, noise cleaning, and feature extraction.',
+  title: 'Elecom',
+  description: 'Elephant Call Isolation & Analysis',
   generator: 'v0.app',
   icons: {
     icon: [
@@ -37,7 +38,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${spaceGrotesk.variable} ${spaceMono.variable} ${outfit.variable} font-outfit antialiased`}>
+      <body className={`${inter.variable} ${dmMono.variable} ${unbounded.variable} font-sans antialiased`}>
         {children}
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>

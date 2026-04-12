@@ -16,7 +16,7 @@ def estimate_f0_yin(audio_segment: np.ndarray, sr: int) -> np.ndarray:
     """
     Estimates the fundamental frequency (f0) contour of an audio segment using the YIN algorithm.
     """
-    f0 = librosa.yin(audio_segment, fmin=FREQ_MIN, fmax=200.0, sr=sr,
+    f0 = librosa.yin(audio_segment, fmin=FREQ_MIN, fmax=30.0, sr=sr,
                      frame_length=N_FFT, hop_length=HOP_LENGTH)
                      
     # Replace unvoiced logic with NaN

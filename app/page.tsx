@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import featuresData from "@/data/features.json";
-import type { CallRecord } from "@/lib/types";
-
+import { useMemo, useState } from "react";
+import featuresData from "@/backend/elecom/output/features/features.json";
+import summaryData from "@/backend/elecom/output/features/summary.json";
+import type { CallRecord, SummaryRecord } from "@/lib/types";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { UploadPanel } from "@/components/dashboard/UploadPanel";
 import { SpectrogramViewer } from "@/components/dashboard/SpectrogramViewer";
@@ -11,60 +11,53 @@ import { FeatureDashboard } from "@/components/dashboard/FeatureDashboard";
 import { CallMetadataRow } from "@/components/dashboard/CallMetadataRow";
 import { BatchResultsTable } from "@/components/dashboard/BatchResultsTable";
 import { SummaryStatsBar } from "@/components/dashboard/SummaryStatsBar";
+import { FilterBar, type FilterState } from "@/components/dashboard/FilterBar";
+import { getQualityFlag } from "@/lib/dashboard";
 
 const records = featuresData as CallRecord[];
+const summary = summaryData as SummaryRecord;
 
 export default function Home() {
   const [selectedRecord, setSelectedRecord] = useState<CallRecord>(records[0]);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [filters, setFilters] = useState<FilterState>({
+    noiseType: "all",
+    qualityFlag: "all",
+    callType: "all",
+  });
 
-  const handleAnalyze = useCallback(() => {
-    setIsAnalyzing(true);
-    setTimeout(() => setIsAnalyzing(false), 2200);
-  }, []);
+  const filteredRecords = useMemo(() => {
+    return records.filter((record) => {
+      if (filters.noiseType !== "all" && record.noiseType !== filters.noiseType) return false;
+      if (filters.callType !== "all" && record.callType !== filters.callType) return false;
+      if (filters.qualityFlag !== "all" && getQualityFlag(record.cleanabilityScore) !== filters.qualityFlag) return false;
+      return true;
+    });
+  }, [filters]);
 
-  const handleSelectRecord = useCallback((record: CallRecord) => {
-    setSelectedRecord(record);
-  }, []);
+  const activeRecord = filteredRecords.find((record) => record.id === selectedRecord.id) ?? filteredRecords[0] ?? records[0];
 
   return (
-    <main className="min-h-screen py-6 px-4 md:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto flex flex-col gap-5">
+    <main className="min-h-screen px-4 py-6 md:px-6 lg:px-8">
+      <div className="mx-auto flex max-w-7xl flex-col gap-5">
+        <DashboardHeader summary={summary} />
+        <FilterBar filters={filters} onChange={setFilters} />
 
-        {/* Header */}
-        <DashboardHeader />
-
-        {/* Upload + Spectrogram row */}
-        <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-5">
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-[320px_1fr]">
           <UploadPanel />
-          <SpectrogramViewer
-            beforeSrc="/spectrograms/before-sample.jpg"
-            afterSrc="/spectrograms/after-sample.jpg"
-            onAnalyze={handleAnalyze}
-            isAnalyzing={isAnalyzing}
-          />
+          <SpectrogramViewer record={activeRecord} records={filteredRecords} />
         </div>
 
-        {/* Call metadata */}
-        <CallMetadataRow
-          callType={selectedRecord.callType}
-          noiseType={selectedRecord.noiseType}
-          multipleCallers={selectedRecord.multipleCallers}
-        />
+        <CallMetadataRow record={activeRecord} />
+        <FeatureDashboard record={activeRecord} records={filteredRecords} summary={summary} />
 
-        {/* Feature dashboard */}
-        <FeatureDashboard record={selectedRecord} />
-
-        {/* Batch results + Summary side-by-side on large screens */}
-        <div className="grid grid-cols-1 xl:grid-cols-[1fr_340px] gap-5">
+        <div className="grid grid-cols-1 gap-5 xl:grid-cols-[1fr_340px]">
           <BatchResultsTable
-            records={records}
-            selectedId={selectedRecord.id}
-            onSelect={handleSelectRecord}
+            records={filteredRecords}
+            selectedId={activeRecord.id}
+            onSelect={setSelectedRecord}
           />
-          <SummaryStatsBar records={records} />
+          <SummaryStatsBar records={filteredRecords} summary={summary} />
         </div>
-
       </div>
     </main>
   );

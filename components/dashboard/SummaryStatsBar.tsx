@@ -1,113 +1,77 @@
 "use client";
 
-import { useMemo } from "react";
-import type { CallRecord, CallType, NoiseType } from "@/lib/types";
+import type { CallRecord, SummaryRecord, NoiseType } from "@/lib/types";
 
 interface SummaryStatsBarProps {
   records: CallRecord[];
+  summary: SummaryRecord;
 }
 
-const callTypeColors: Record<CallType, string> = {
-  rumble: "bg-cyan-400",
-  trumpet: "bg-violet-400",
-  roar: "bg-amber-400",
-};
+const noiseOrder: NoiseType[] = ["generator", "vehicle", "airplane", "mixed"];
 
-const noiseTypeColors: Record<NoiseType, string> = {
-  wind: "bg-slate-400",
-  vehicle: "bg-red-400",
-  rain: "bg-blue-400",
-  insects: "bg-emerald-400",
+const noiseColor: Record<NoiseType, string> = {
+  generator: "bg-primary",
+  vehicle: "bg-secondary",
+  airplane: "bg-accent",
+  mixed: "bg-white",
 };
 
 function MiniBar({ label, count, total, colorClass }: { label: string; count: number; total: number; colorClass: string }) {
   const pct = total > 0 ? (count / total) * 100 : 0;
+
   return (
-    <div className="flex items-center gap-2 min-w-0">
-      <span className="font-body text-muted-foreground capitalize w-16 flex-shrink-0 truncate">{label}</span>
-      <div className="flex-1 h-1.5 rounded-full bg-muted/50 overflow-hidden">
-        <div
-          className={`h-full rounded-full ${colorClass} transition-all duration-700`}
-          style={{ width: `${pct}%` }}
-        />
+    <div className="flex items-center gap-2">
+      <span className="w-20 truncate text-xs capitalize text-muted-foreground">{label}</span>
+      <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
+        <div className={`h-full rounded-full ${colorClass}`} style={{ width: `${pct}%` }} />
       </div>
-      <span className="font-status text-muted-foreground w-4 flex-shrink-0">{count}</span>
+      <span className="stat-mono w-8 text-right text-xs text-foreground">{count}</span>
     </div>
   );
 }
 
-export function SummaryStatsBar({ records }: SummaryStatsBarProps) {
-  const stats = useMemo(() => {
-    const total = records.length;
-    const avgClean = total > 0 ? records.reduce((s, r) => s + r.cleanabilityScore, 0) / total : 0;
-    const avgSnr = total > 0 ? records.reduce((s, r) => s + r.snrImprovement, 0) / total : 0;
-
-    const byCallType = records.reduce(
-      (acc, r) => { acc[r.callType] = (acc[r.callType] || 0) + 1; return acc; },
-      {} as Record<string, number>
-    );
-    const byNoiseType = records.reduce(
-      (acc, r) => { acc[r.noiseType] = (acc[r.noiseType] || 0) + 1; return acc; },
-      {} as Record<string, number>
-    );
-
-    return { total, avgClean, avgSnr, byCallType, byNoiseType };
-  }, [records]);
+export function SummaryStatsBar({ records, summary }: SummaryStatsBarProps) {
+  const byNoiseType = records.reduce<Record<string, number>>((acc, record) => {
+    acc[record.noiseType] = (acc[record.noiseType] ?? 0) + 1;
+    return acc;
+  }, {});
 
   return (
-    <div className="glass rounded-2xl p-5 flex flex-col gap-4">
-      <h2 className="font-section-header text-foreground">
+    <div className="glass rounded-2xl p-5">
+      <h2 className="mb-4 text-sm font-semibold uppercase tracking-widest text-foreground">
         Summary Statistics
       </h2>
 
-      <div className="grid grid-cols-3 gap-4">
-        {/* Total calls */}
-        <div className="flex flex-col items-center gap-1 p-4 rounded-xl bg-primary/5 border border-primary/15">
-          <span className="text-3xl font-metric-number text-primary">{stats.total}</span>
-          <span className="font-feature-label text-muted-foreground text-center">Total Calls Processed</span>
+      <div className="grid gap-3">
+        <div className="rounded-xl border border-border bg-card p-4 shadow-[0_0_10px_rgba(0,255,136,0.3)]">
+          <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">Total Calls Processed</p>
+          <p className="mt-2 stat-mono text-3xl text-primary">{summary.totalCallsProcessed}</p>
         </div>
-
-        {/* Avg cleanability */}
-        <div className="flex flex-col items-center gap-1 p-4 rounded-xl bg-emerald-400/5 border border-emerald-400/15">
-          <span className="text-3xl font-metric-number text-emerald-400">{stats.avgClean.toFixed(0)}</span>
-          <span className="font-feature-label text-muted-foreground text-center">Avg Cleanability</span>
+        <div className="rounded-xl border border-border bg-card p-4 shadow-[0_0_10px_rgba(0,255,136,0.3)]">
+          <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">Average Cleanability</p>
+          <p className="mt-2 stat-mono text-3xl text-primary">{summary.avgCleanabilityScore.toFixed(1)}</p>
         </div>
-
-        {/* Avg SNR */}
-        <div className="flex flex-col items-center gap-1 p-4 rounded-xl bg-violet-400/5 border border-violet-400/15">
-          <span className="text-3xl font-metric-number text-violet-400">+{stats.avgSnr.toFixed(1)}</span>
-          <span className="font-feature-label text-muted-foreground text-center">Avg SNR Δ (dB)</span>
+        <div className="rounded-xl border border-border bg-card p-4 shadow-[0_0_10px_rgba(0,255,136,0.3)]">
+          <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">Average SNR Improvement</p>
+          <p className="mt-2 stat-mono text-3xl text-primary">{summary.avgSnrImprovement.toFixed(1)}</p>
+        </div>
+        <div className="rounded-xl border border-border bg-card p-4 shadow-[0_0_10px_rgba(0,255,136,0.3)]">
+          <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">Average F0</p>
+          <p className="mt-2 stat-mono text-3xl text-primary">{summary.avgF0Hz.toFixed(1)}</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {/* By call type */}
-        <div className="flex flex-col gap-2.5">
-          <span className="font-feature-label text-muted-foreground">By Call Type</span>
-          {(["rumble", "trumpet", "roar"] as CallType[]).map((ct) => (
-            <MiniBar
-              key={ct}
-              label={ct}
-              count={stats.byCallType[ct] || 0}
-              total={stats.total}
-              colorClass={callTypeColors[ct]}
-            />
-          ))}
-        </div>
-
-        {/* By noise type */}
-        <div className="flex flex-col gap-2.5">
-          <span className="font-feature-label text-muted-foreground">By Noise Type</span>
-          {(["wind", "vehicle", "rain", "insects"] as NoiseType[]).map((nt) => (
-            <MiniBar
-              key={nt}
-              label={nt}
-              count={stats.byNoiseType[nt] || 0}
-              total={stats.total}
-              colorClass={noiseTypeColors[nt]}
-            />
-          ))}
-        </div>
+      <div className="mt-5 flex flex-col gap-3">
+        <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">By Noise Type</p>
+        {noiseOrder.map((noiseType) => (
+          <MiniBar
+            key={noiseType}
+            label={noiseType}
+            count={byNoiseType[noiseType] ?? 0}
+            total={records.length}
+            colorClass={noiseColor[noiseType]}
+          />
+        ))}
       </div>
     </div>
   );

@@ -2,6 +2,7 @@ import os
 import sys
 import json
 import traceback
+from typing import Optional
 import numpy as np
 import librosa
 
@@ -9,9 +10,11 @@ try:
     from config import *
 except ImportError:
     sys.path.insert(0, os.path.dirname(__file__))
-    from config import *
+from config import *
 
 from steps import loader, spectrogram, noise_reduction, masking, reconstruction, features, cv_analyzer
+
+TARGET_SELECTIONS = [14, 15, 16, 17, 18, 1, 2, 3, 4, 5, 13, 19, 20, 22, 115]
 
 def segment_call(audio: np.ndarray, sr: int, start_time: float, end_time: float) -> np.ndarray:
     """
@@ -21,7 +24,15 @@ def segment_call(audio: np.ndarray, sr: int, start_time: float, end_time: float)
     end_sample   = min(len(audio), int((end_time + PAD_SECONDS) * sr))
     return audio[start_sample:end_sample]
 
-def process_single_call(row, audio_cache: dict) -> dict:
+def process_single_call(
+    row,
+    audio_cache: dict,
+    output_root: str = "output",
+    generate_plots: bool = True,
+    save_outputs: bool = True,
+    tune_config: Optional[dict] = None,
+    force_recompute: bool = True,
+) -> dict:
     """
     Abstracts sequential operation batch steps (a through u) allowing independent call isolation testing.
     """
@@ -46,14 +57,15 @@ def process_single_call(row, audio_cache: dict) -> dict:
     segment = segment_call(audio, sr, start_time, end_time)
     
     # c. Fast bypass caching execution paths
-    cleaned_path = f"output/audio/{sound_file}_call_{sel}_cleaned.wav"
+    cleaned_path = os.path.join(output_root, "audio", f"{sound_file}_call_{sel}_cleaned.wav")
     freq_bins, bin_min, bin_max = spectrogram.get_freq_bins(sr)
     
     # Required maps universally (both path traces)
     _, magnitude, phase, magnitude_db = spectrogram.compute_stft(segment, sr)
     
     noise_ref = noise_reduction.extract_noise_reference(audio, sr, start_time, end_time)
-    segment_nr = noise_reduction.apply_noisereduce(segment, noise_ref, sr)
+    segment_nr = noise_reduction.apply_noisereduce(segment, noise_ref, sr, noise_type=noise_type)
+    segment_nr = noise_reduction.rumble_bandpass(segment_nr, sr, noise_type=noise_type)
     
     f0_contour = masking.estimate_f0_yin(segment_nr, sr)
     
@@ -66,15 +78,28 @@ def process_single_call(row, audio_cache: dict) -> dict:
     decision_exp = ""
     confidence_score = 0.0
     
-    if os.path.exists(cleaned_path):
+    if os.path.exists(cleaned_path) and not force_recompute:
         cleaned, _ = librosa.load(cleaned_path, sr=sr)
         masked_mag = spectrogram.compute_stft(cleaned, sr)[1]
         multi = True # Dummy fallback default
         decision_exp = "Bypassed via Cache"
         confidence_score = 1.0
+        adaptive_params = {"wiener_strength": 0.0, "stationarity": 0.0, "base_alpha": 1.0}
+        harmonic_count_prefilter = features.count_harmonics_from_magnitude(masked_mag, f0_contour, freq_bins)
+        harmonic_retention = 1.0
+        blend_diag = {"blendAlpha": 1.0}
     else:
         noise_profile = noise_reduction.compute_noise_profile(noise_ref, sr)
-        magnitude_clean = noise_reduction.spectral_subtraction(magnitude, noise_profile)
+        magnitude_subtracted = noise_reduction.spectral_subtraction(magnitude, noise_profile)
+        harmonic_count_prefilter = features.count_harmonics_from_magnitude(magnitude_subtracted, f0_contour, freq_bins)
+        magnitude_clean, adaptive_params = noise_reduction.apply_wiener_postfilter(
+            magnitude_subtracted,
+            noise_profile,
+            noise_type=noise_type,
+            noise_reference=noise_ref,
+            sr=sr,
+            tune_config=tune_config,
+        )
         
         multi = masking.detect_multiple_callers(f0_contour, magnitude_clean, freq_bins)
         
@@ -106,9 +131,35 @@ def process_single_call(row, audio_cache: dict) -> dict:
                 mask_smooth = masking.smooth_mask(mask_raw)
             
         masked_mag = masking.apply_harmonic_mask(magnitude_clean, mask_smooth)
-        
-        cleaned = reconstruction.reconstruct_audio(masked_mag, phase, sr)
-        reconstruction.save_audio(cleaned, sr, cleaned_path)
+
+        filtered_candidate = reconstruction.reconstruct_audio(masked_mag, phase, sr)
+        filtered_candidate = noise_reduction.rumble_bandpass(filtered_candidate, sr, noise_type=noise_type)
+
+        candidate_mag = spectrogram.compute_stft(filtered_candidate, sr)[1]
+        harmonic_count_postfilter = features.count_harmonics_from_magnitude(candidate_mag, f0_contour, freq_bins)
+        harmonic_retention = (
+            float(harmonic_count_postfilter / max(harmonic_count_prefilter, 1))
+            if harmonic_count_prefilter > 0
+            else 1.0
+        )
+        reference_energy_db = noise_reduction.signal_energy_db(segment_nr)
+        filtered_energy_db = noise_reduction.signal_energy_db(filtered_candidate)
+        energy_drop_db = max(0.0, reference_energy_db - filtered_energy_db)
+
+        cleaned, blend_diag = noise_reduction.blend_signals(
+            original_audio=segment_nr,
+            filtered_audio=filtered_candidate,
+            base_alpha=adaptive_params["base_alpha"],
+            harmonic_ratio=harmonic_retention,
+            energy_drop_db=energy_drop_db,
+            tune_config=tune_config,
+        )
+        cleaned = noise_reduction.rumble_bandpass(cleaned, sr, noise_type=noise_type)
+        if save_outputs:
+            reconstruction.save_audio(cleaned, sr, cleaned_path)
+
+    final_f0_contour = masking.estimate_f0_yin(cleaned, sr)
+    final_stft, final_magnitude, _, _ = spectrogram.compute_stft(cleaned, sr)
 
     # d. SNR & Features mapped universally BEFORE plotting (for stats injection)
     snr_dict = reconstruction.compute_snr_improvement(audio, cleaned, start_time, end_time, sr)
@@ -116,16 +167,27 @@ def process_single_call(row, audio_cache: dict) -> dict:
         call_row=row,
         raw_audio=segment,
         cleaned_audio=cleaned,
-        masked_magnitude=masked_mag,
-        f0_contour=f0_contour,
+        masked_magnitude=final_magnitude,
+        f0_contour=final_f0_contour,
         freq_bins=freq_bins,
         snr_dict=snr_dict,
         multiple_callers=multi,
         sr=sr
     )
+    feat["harmonicCountPreFilter"] = int(harmonic_count_prefilter)
+    feat["harmonicRetention"] = round(float(harmonic_retention), 4)
+    feat["blendAlpha"] = round(float(blend_diag.get("blendAlpha", 1.0)), 4)
+    feat["wienerStrength"] = round(float(adaptive_params.get("wiener_strength", 0.0)), 4)
+    feat["noiseStationarity"] = round(float(adaptive_params.get("stationarity", 0.0)), 6)
 
     # e. Visual Generations
-    spectrogram.plot_spectrogram(magnitude_db, sr, f"Before — Call {sel}", f"output/spectrograms/{sel}_before.png")
+    if generate_plots:
+        spectrogram.plot_spectrogram(
+            magnitude_db,
+            sr,
+            f"Before — Call {sel}",
+            os.path.join(output_root, "spectrograms", f"{sel}_before.png"),
+        )
 
     # Compute active tuples safely independently here to overlay over visual traces mathematically natively
     try:
@@ -139,15 +201,30 @@ def process_single_call(row, audio_cache: dict) -> dict:
         segment = audio[start_sample:end_sample]
         active_segments_list = []
         
-    masked_db = librosa.amplitude_to_db(masked_mag, ref=np.max)
+    masked_db = librosa.amplitude_to_db(final_magnitude, ref=np.max)
     f0_str = f"{feat['f0']:.1f}"
     hnr_str = f"{feat['hnrAfter']:.2f}"
     after_title = f"After — Call {sel} | Tier {tier} | f0={f0_str}Hz | HNR={hnr_str}dB | Cleanability=pending"
-    spectrogram.plot_spectrogram(masked_db, sr, after_title, f"output/spectrograms/{sel}_after.png", 
-                                 f0_contour=f0_contour, cv_harmonics=cv_harmonics_overlay, 
-                                 active_segments=active_segments_list, decision_text=decision_exp)
-    
-    reconstruction.plot_waveform_comparison(segment, cleaned, sr, start_time, end_time, f"output/spectrograms/{sel}_waveform.png")
+    if generate_plots:
+        spectrogram.plot_spectrogram(
+            masked_db,
+            sr,
+            after_title,
+            os.path.join(output_root, "spectrograms", f"{sel}_after.png"),
+            f0_contour=final_f0_contour,
+            cv_harmonics=cv_harmonics_overlay,
+            active_segments=active_segments_list,
+            decision_text=decision_exp,
+        )
+
+        reconstruction.plot_waveform_comparison(
+            segment,
+            cleaned,
+            sr,
+            start_time,
+            end_time,
+            os.path.join(output_root, "spectrograms", f"{sel}_waveform.png"),
+        )
     
     feat['maskTierUsed'] = tier
     feat['spectrogramBefore'] = f"/spectrograms/{sel}_before.png"
@@ -245,70 +322,16 @@ def validate_phase2(df):
         
     print("\n✅ Phase 2 PASSED")
 
-def main():
-    print("Initializing Elephant Communications Pipeline...")
-    
-    # 1. Mount and Download
-    # loader.mount_drive_and_download()
-    
-    # 2. Load spreadsheet
-    df = loader.load_spreadsheet("data/calls.csv")
-    
-    # Scaffold outputs explicitly before validation checks write against them
-    os.makedirs("output/audio", exist_ok=True)
-    os.makedirs("output/spectrograms", exist_ok=True)
-    os.makedirs("output/features", exist_ok=True)
-    
-    TARGET_SELECTIONS = [14, 15, 16, 17, 18, 1, 2, 3, 4, 5, 13, 19, 20, 22, 115]
-    df_target = df[df["Selection"].isin(TARGET_SELECTIONS)]
-
-    print("\n--- Running Full Batch Pipeline ---")
-    audio_cache = {}
-    all_features = []
-    failed = []
-    
-    # 4. BATCH LOOP
-    for idx, row in df_target.iterrows():
-        sel = int(row.get("Selection", -1))
-        filename = str(row.get("Sound_file", "unknown"))
-        noise_type = str(row.get("noise_type", "unknown"))
-        try:
-            feat = process_single_call(row, audio_cache)
-            all_features.append(feat)
-            
-            print(f"✓ {sel}/15 — {filename} ({noise_type})")
-            
-        except Exception as e:
-            err_msg = traceback.format_exc()
-            failed.append({
-                "selection": sel, 
-                "sound_file": filename, 
-                "error": str(e),
-                "traceback": err_msg
-            })
-            print(f"✗ {sel}/15 FAILED: {e}")
-            continue
-
-    # 5. POST LOOP
-    print("\nComputing abstract cleanability rankings...")
-    all_features = features.compute_cleanability_scores(all_features)
-    
-    # Dump exactly as shaped by features.py
-    with open("output/features/features.json", "w") as f:
-        json.dump(all_features, f, indent=4)
-        
-    with open("output/features/failed.json", "w") as f:
-        json.dump(failed, f, indent=4)
-        
+def build_summary(all_features: list[dict], failed: list[dict]) -> dict:
     def safe_mean(key, dataset=all_features):
         vals = [d[key] for d in dataset if d.get(key) is not None and isinstance(d[key], (int, float))]
         return float(np.mean(vals)) if vals else 0.0
-        
+
     avg_cleanability_score = safe_mean("cleanabilityScore")
     avg_snr_improvement_db = safe_mean("snrImprovement")
     avg_hnr_improvement_db = safe_mean("hnrImprovement")
     avg_f0_hz = safe_mean("f0")
-    
+
     multiple_caller_flags = sum(1 for d in all_features if d.get("multipleCallers"))
 
     by_noise_type = {}
@@ -335,7 +358,7 @@ def main():
     tier2_used = sum(1 for d in all_features if d.get("maskTierUsed") == 2)
     tier3_used = sum(1 for d in all_features if d.get("maskTierUsed") == 3)
 
-    summary = {
+    return {
         "totalCallsProcessed": len(all_features),
         "totalCallsFailed": len(failed),
         "avgCleanabilityScore": round(avg_cleanability_score, 4),
@@ -351,10 +374,82 @@ def main():
             "tier3": tier3_used
         }
     }
-    
-    with open("output/features/summary.json", "w") as f:
+
+
+def run_batch_pipeline(
+    df,
+    output_root: str = "output",
+    generate_plots: bool = True,
+    save_outputs: bool = True,
+    tune_config: Optional[dict] = None,
+    force_recompute: bool = True,
+):
+    os.makedirs(os.path.join(output_root, "audio"), exist_ok=True)
+    os.makedirs(os.path.join(output_root, "spectrograms"), exist_ok=True)
+    os.makedirs(os.path.join(output_root, "features"), exist_ok=True)
+
+    df_target = df[df["Selection"].isin(TARGET_SELECTIONS)]
+    print("\n--- Running Full Batch Pipeline ---")
+    audio_cache = {}
+    all_features = []
+    failed = []
+
+    for idx, row in df_target.iterrows():
+        sel = int(row.get("Selection", -1))
+        filename = str(row.get("Sound_file", "unknown"))
+        noise_type = str(row.get("noise_type", "unknown"))
+        try:
+            feat = process_single_call(
+                row,
+                audio_cache,
+                output_root=output_root,
+                generate_plots=generate_plots,
+                save_outputs=save_outputs,
+                tune_config=tune_config,
+                force_recompute=force_recompute,
+            )
+            all_features.append(feat)
+            print(f"✓ {sel}/15 — {filename} ({noise_type})")
+        except Exception as e:
+            err_msg = traceback.format_exc()
+            failed.append({
+                "selection": sel, 
+                "sound_file": filename, 
+                "error": str(e),
+                "traceback": err_msg
+            })
+            print(f"✗ {sel}/15 FAILED: {e}")
+            continue
+
+    print("\nComputing abstract cleanability rankings...")
+    all_features = features.compute_cleanability_scores(all_features)
+
+    with open(os.path.join(output_root, "features", "features.json"), "w") as f:
+        json.dump(all_features, f, indent=4)
+
+    with open(os.path.join(output_root, "features", "failed.json"), "w") as f:
+        json.dump(failed, f, indent=4)
+
+    summary = build_summary(all_features, failed)
+    with open(os.path.join(output_root, "features", "summary.json"), "w") as f:
         json.dump(summary, f, indent=4)
-        
+
+    return all_features, failed, summary
+
+
+def main():
+    print("Initializing Elephant Communications Pipeline...")
+
+    df = loader.load_spreadsheet("data/calls.csv")
+    all_features, failed, summary = run_batch_pipeline(df)
+    avg_cleanability_score = summary["avgCleanabilityScore"]
+    avg_snr_improvement_db = summary["avgSnrImprovement"]
+    avg_hnr_improvement_db = summary["avgHnrImprovement"]
+    by_noise_type = summary["byNoiseType"]
+    tier1_used = summary["tierUsage"]["tier1"]
+    tier2_used = summary["tierUsage"]["tier2"]
+    tier3_used = summary["tierUsage"]["tier3"]
+
     print(f"  ═══════════════════════════════════")
     print(f"  ELECOM PIPELINE COMPLETE")
     print(f"  ═══════════════════════════════════")

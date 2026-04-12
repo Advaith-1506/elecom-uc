@@ -1,7 +1,9 @@
 import os
 import sys
+from typing import Optional
 import numpy as np
 import scipy.signal
+import scipy.ndimage
 import librosa
 import noisereduce as nr
 
@@ -9,13 +11,65 @@ import noisereduce as nr
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from config import *
 
-def apply_noisereduce(audio_segment: np.ndarray, noise_reference: np.ndarray, sr: int) -> np.ndarray:
+
+def _clip(value: float, low: float, high: float) -> float:
+    return float(np.clip(value, low, high))
+
+
+def signal_energy_db(audio: np.ndarray) -> float:
+    return float(20 * np.log10(np.sqrt(np.mean(np.square(audio))) + 1e-8))
+
+
+def estimate_noise_stationarity(noise_reference: np.ndarray, sr: int) -> float:
+    """
+    Estimate stationarity by measuring normalized variance of the noise spectrum over time.
+    Lower values imply a more stationary noise source.
+    """
+    if noise_reference is None or len(noise_reference) == 0:
+        return 0.0
+
+    stft_matrix = librosa.stft(noise_reference, n_fft=N_FFT, hop_length=HOP_LENGTH, window=WINDOW)
+    magnitude = np.abs(stft_matrix)
+    mean_spec = np.mean(magnitude, axis=1, keepdims=True)
+    norm_var = np.var(magnitude / (mean_spec + 1e-8), axis=1)
+    return float(np.mean(norm_var))
+
+
+def adaptive_strength_from_stationarity(stationarity: float, low: float = STATIONARITY_LOW, high: float = STATIONARITY_HIGH) -> float:
+    normalized = 1.0 - ((stationarity - low) / (high - low + 1e-8))
+    return _clip(normalized, MIN_WIENER_STRENGTH, MAX_WIENER_STRENGTH)
+
+
+def resolve_adaptive_params(noise_type: str, noise_reference: np.ndarray, sr: int, tune_config: Optional[dict] = None) -> dict:
+    tune_config = tune_config or {}
+    stationarity = estimate_noise_stationarity(noise_reference, sr)
+
+    if noise_type in WIENER_STRENGTH_BY_NOISE:
+        wiener_strength = WIENER_STRENGTH_BY_NOISE[noise_type]
+        base_alpha = BLEND_ALPHA_BY_NOISE.get(noise_type, DEFAULT_BLEND_ALPHA)
+    else:
+        wiener_strength = adaptive_strength_from_stationarity(stationarity)
+        base_alpha = _clip(0.55 + 0.35 * wiener_strength, MIN_BLEND_ALPHA, MAX_BLEND_ALPHA)
+
+    wiener_strength *= float(tune_config.get("wiener_scale", 1.0))
+    base_alpha *= float(tune_config.get("blend_scale", 1.0))
+
+    return {
+        "stationarity": stationarity,
+        "wiener_strength": _clip(wiener_strength, MIN_WIENER_STRENGTH, MAX_WIENER_STRENGTH),
+        "base_alpha": _clip(base_alpha, MIN_BLEND_ALPHA, MAX_BLEND_ALPHA),
+    }
+
+def apply_noisereduce(audio_segment: np.ndarray, noise_reference: np.ndarray, sr: int, noise_type: str = "unknown") -> np.ndarray:
+    stationary_noise = noise_type in ("generator", "airplane")
+    prop_decrease = 0.9 if noise_type == "generator" else 0.8
+
     cleaned = nr.reduce_noise(
         y=audio_segment,
         sr=sr,
         y_noise=noise_reference,
-        prop_decrease=0.8,
-        stationary=False
+        prop_decrease=prop_decrease,
+        stationary=stationary_noise
     )
     return cleaned
 
@@ -72,6 +126,22 @@ def detect_noise_frequency(audio: np.ndarray, sr: int, noise_type: str) -> np.nd
                     
     return audio
 
+def rumble_bandpass(audio: np.ndarray, sr: int, noise_type: str = "unknown") -> np.ndarray:
+    """
+    Preserve the low-frequency elephant rumble band while attenuating out-of-band noise.
+    """
+    low_hz, high_hz = RUMBLE_BAND_BY_NOISE.get(noise_type, (RUMBLE_BAND_LOW, RUMBLE_BAND_HIGH))
+    nyquist = 0.5 * sr
+    high_hz = min(high_hz, nyquist * 0.95)
+
+    if low_hz <= 0 or low_hz >= high_hz:
+        return audio
+
+    sos = scipy.signal.butter(4, [low_hz, high_hz], btype="bandpass", fs=sr, output="sos")
+    filtered = scipy.signal.sosfiltfilt(sos, audio)
+    print(f"Applied rumble band-pass: {low_hz:.1f}-{high_hz:.1f} Hz")
+    return filtered
+
 def extract_noise_reference(audio: np.ndarray, sr: int, call_start_time: float, call_end_time: float) -> np.ndarray:
     """
     Extracts a time window from the audio to use as a pure noise reference.
@@ -120,3 +190,68 @@ def spectral_subtraction(magnitude: np.ndarray, noise_profile: np.ndarray) -> np
     print(f"Mean reduction percentage: {mean_reduction:.2f}%")
     
     return S_clean
+
+def apply_wiener_postfilter(
+    magnitude: np.ndarray,
+    noise_profile: np.ndarray,
+    noise_type: str = "unknown",
+    noise_reference: Optional[np.ndarray] = None,
+    sr: Optional[int] = None,
+    tune_config: Optional[dict] = None,
+) -> tuple[np.ndarray, dict]:
+    """
+    Apply a smooth Wiener-style gain after subtraction to reduce musical-noise artifacts.
+    """
+    sr = sr or 48000
+    params = resolve_adaptive_params(noise_type, noise_reference, sr, tune_config=tune_config)
+    power = magnitude ** 2
+    noise_power = np.maximum(noise_profile ** 2, 1e-10)
+    posterior_snr = np.maximum(power / noise_power - 1.0, 0.0)
+    gain = posterior_snr / (posterior_snr + 1.0)
+    gain = scipy.ndimage.gaussian_filter(gain, sigma=WIENER_SMOOTH_SIGMA)
+    gain = np.clip(gain, WIENER_FLOOR, 1.0)
+    adjusted_gain = 1.0 - params["wiener_strength"] * (1.0 - gain)
+    adjusted_gain = np.clip(adjusted_gain, WIENER_FLOOR, 1.0)
+
+    filtered = magnitude * adjusted_gain
+    print(
+        f"Wiener post-filter gain mean: {float(np.mean(adjusted_gain)):.4f} "
+        f"(strength={params['wiener_strength']:.2f}, stationarity={params['stationarity']:.4f})"
+    )
+    return filtered, params
+
+
+def align_signals(reference: np.ndarray, candidate: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    length = min(len(reference), len(candidate))
+    return reference[:length], candidate[:length]
+
+
+def blend_signals(
+    original_audio: np.ndarray,
+    filtered_audio: np.ndarray,
+    base_alpha: float,
+    harmonic_ratio: float,
+    energy_drop_db: float,
+    tune_config: Optional[dict] = None,
+) -> tuple[np.ndarray, dict]:
+    tune_config = tune_config or {}
+    threshold = float(tune_config.get("harmonic_threshold", HARMONIC_RETENTION_THRESHOLD))
+
+    alpha = base_alpha
+    if harmonic_ratio < threshold:
+        alpha *= max(0.45, harmonic_ratio / (threshold + 1e-8))
+    if energy_drop_db > ENERGY_DROP_LIMIT_DB:
+        alpha *= max(0.5, 1.0 - (energy_drop_db - ENERGY_DROP_LIMIT_DB) / 10.0)
+
+    alpha = _clip(alpha, MIN_BLEND_ALPHA, MAX_BLEND_ALPHA)
+    orig_aligned, filt_aligned = align_signals(original_audio, filtered_audio)
+    blended = alpha * filt_aligned + (1.0 - alpha) * orig_aligned
+    peak = np.max(np.abs(blended))
+    if peak > 1e-8:
+        blended = blended / peak
+
+    return blended, {
+        "blendAlpha": alpha,
+        "harmonicRatio": harmonic_ratio,
+        "energyDropDb": energy_drop_db,
+    }

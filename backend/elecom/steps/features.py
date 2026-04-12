@@ -17,6 +17,33 @@ def safe_round(val, ndigits=4):
         return 0.0
     return round(float(val), ndigits)
 
+
+def count_harmonics_from_magnitude(magnitude: np.ndarray, f0_contour: np.ndarray, freq_bins: np.ndarray) -> int:
+    with np.errstate(all='ignore'):
+        f0_hz = np.nanmedian(f0_contour)
+
+    db_spectrum = librosa.amplitude_to_db(np.mean(magnitude, axis=1) + 1e-10)
+    harmonic_count = 0
+    if not np.isnan(f0_hz) and f0_hz > 0:
+        for k in range(1, 21):
+            harmonic_freq = f0_hz * k
+            if harmonic_freq > FREQ_MAX:
+                break
+            bin_idx = np.argmin(np.abs(freq_bins - harmonic_freq))
+            if db_spectrum[bin_idx] > (NOISE_FLOOR_DB + 6.0):
+                harmonic_count += 1
+    return int(harmonic_count)
+
+
+def correct_rumble_f0(f0_hz: float) -> float:
+    if np.isnan(f0_hz) or f0_hz <= 0:
+        return f0_hz
+    if f0_hz > 25.0:
+        f0_hz /= 2.0
+    if f0_hz < 8.0:
+        f0_hz *= 2.0
+    return float(np.clip(f0_hz, 8.0, 25.0))
+
 def extract_features(call_row: dict, raw_audio: np.ndarray, cleaned_audio: np.ndarray, 
                      masked_magnitude: np.ndarray, f0_contour: np.ndarray, 
                      freq_bins: np.ndarray, snr_dict: dict, multiple_callers: bool, 
@@ -28,29 +55,17 @@ def extract_features(call_row: dict, raw_audio: np.ndarray, cleaned_audio: np.nd
     # 1. Fundamental Frequency Median
     with np.errstate(all='ignore'):
         f0_hz = np.nanmedian(f0_contour)
+    f0_hz = correct_rumble_f0(f0_hz)
         
     # 2. Harmonic Count Filtered by Noise Floor
-    # Compress the STFT temporal dimension, converted down to db map
-    db_spectrum = librosa.amplitude_to_db(np.mean(masked_magnitude, axis=1))
-    
-    harmonic_count = 0
-    if not np.isnan(f0_hz) and f0_hz > 0:
-        for k in range(1, 21): # k=1..20
-            harmonic_freq = f0_hz * k
-            if harmonic_freq > FREQ_MAX:
-                break
-            
-            # Find the bin containing our theoretical harmonic frequency
-            bin_idx = np.argmin(np.abs(freq_bins - harmonic_freq))
-            if db_spectrum[bin_idx] > (NOISE_FLOOR_DB + 6.0):
-                harmonic_count += 1
+    harmonic_count = count_harmonics_from_magnitude(masked_magnitude, f0_contour, freq_bins)
                 
     # 3. Harmonic to Noise Ratio Measurements (Current and Baseline)
     def calculate_hnr(audio_array: np.ndarray) -> float:
         if np.isnan(f0_hz) or f0_hz <= 0:
             return np.nan
             
-        r = np.correlate(audio_array, audio_array, mode='full')[len(audio_array)-1:]
+        r = scipy.signal.correlate(audio_array, audio_array, mode='full', method='fft')[len(audio_array)-1:]
         lag = int(sr / f0_hz)
         
         if lag >= len(r) or lag == 0:
@@ -110,6 +125,11 @@ def extract_features(call_row: dict, raw_audio: np.ndarray, cleaned_audio: np.nd
         "energyDb": float(safe_round(energy_db)),
         "multipleCallers": bool(multiple_callers),
         "maskTierUsed": 1,
+        "harmonicRetention": 1.0,
+        "harmonicCountPreFilter": int(harmonic_count),
+        "blendAlpha": 1.0,
+        "wienerStrength": 0.0,
+        "noiseStationarity": 0.0,
         "cleanabilityScore": 0.0,
         "spectrogramBefore": "unknown",
         "spectrogramAfter": "unknown"
@@ -117,29 +137,38 @@ def extract_features(call_row: dict, raw_audio: np.ndarray, cleaned_audio: np.nd
 
 def compute_cleanability_scores(all_features: list[dict]) -> list[dict]:
     """
-    Synthesizes HNR, SNR, and Semantic Harmonic properties to establish a global unified Quality benchmark Score between 0.0 and 100.0.
+    Score cleanability against absolute restoration targets instead of only relative batch ranking.
     """
-    if not all_features: return all_features
-        
-    hnr_vals = [f['hnrAfter'] for f in all_features]
-    global_min_hnr = min(hnr_vals) if hnr_vals else 0.0
-    global_max_hnr = max(hnr_vals) if hnr_vals else 1.0
-    
-    snr_vals = [f['snrImprovement'] for f in all_features]
-    global_min_snr = min(snr_vals) if snr_vals else 0.0
-    global_max_snr = max(snr_vals) if snr_vals else 1.0
-    
-    harm_vals = [f['harmonicCount'] for f in all_features]
-    global_min_harm = min(harm_vals) if harm_vals else 0.0
-    global_max_harm = max(harm_vals) if harm_vals else 1.0
-    
+    if not all_features:
+        return all_features
+
+    def normalize(value: float, low: float, high: float) -> float:
+        return float(np.clip((value - low) / (high - low + 1e-8), 0.0, 1.0))
+
     for f in all_features:
-        norm_hnr = (f['hnrAfter'] - global_min_hnr) / (global_max_hnr - global_min_hnr + 1e-8)
-        norm_snr = (f['snrImprovement'] - global_min_snr) / (global_max_snr - global_min_snr + 1e-8)
-        norm_harmonic = (f['harmonicCount'] - global_min_harm) / (global_max_harm - global_min_harm + 1e-8)
-            
-        score = (0.4 * norm_hnr + 0.4 * norm_snr + 0.2 * norm_harmonic) * 100.0
+        snr_score = normalize(f.get('snrImprovement', 0.0), -5.0, 20.0)
+        hnr_gain_score = normalize(f.get('hnrImprovement', 0.0), -2.0, 10.0)
+        hnr_abs_score = normalize(f.get('hnrAfter', 0.0), -10.0, 12.0)
+        harmonic_score = normalize(f.get('harmonicCount', 0.0), 4.0, 20.0)
+        energy_score = normalize(f.get('energyDb', -40.0), -30.0, -10.0)
+
+        score = (
+            0.34 * snr_score +
+            0.30 * hnr_gain_score +
+            0.18 * hnr_abs_score +
+            0.10 * harmonic_score +
+            0.08 * energy_score
+        ) * 100.0
+
+        if f.get('multipleCallers'):
+            score -= 6.0
+        if f.get('snrImprovement', 0.0) < 0:
+            score -= 8.0
+        harmonic_retention = float(f.get('harmonicRetention', 1.0))
+        if harmonic_retention < SOFT_HARMONIC_RETENTION:
+            score -= (SOFT_HARMONIC_RETENTION - harmonic_retention) * 18.0
+
         score = float(np.clip(score, 0.0, 100.0))
         f['cleanabilityScore'] = round(score, 2)
-        
+
     return all_features

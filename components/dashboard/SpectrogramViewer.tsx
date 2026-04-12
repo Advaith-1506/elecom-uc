@@ -1,138 +1,182 @@
 "use client";
 
-import { useState } from "react";
-import Image from "next/image";
-import { Zap, Play, Pause, Volume2 } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Play, X } from "lucide-react";
+import type { CallRecord, NoiseType } from "@/lib/types";
+import {
+  getAudioPath,
+  getNoiseTone,
+  getSelectionLabel,
+  getSpectrogramAfter,
+  getSpectrogramBefore,
+} from "@/lib/dashboard";
 
 interface SpectrogramViewerProps {
-  beforeSrc?: string;
-  afterSrc?: string;
-  onAnalyze?: () => void;
-  isAnalyzing?: boolean;
+  record: CallRecord;
+  records: CallRecord[];
 }
 
-function MockAudioPlayer({ label }: { label: string }) {
-  const [playing, setPlaying] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const bars = [4, 7, 5, 9, 6, 8, 4, 10, 5, 7, 6, 9, 4, 8, 5];
+const noiseOrder: NoiseType[] = ["generator", "vehicle", "airplane", "mixed"];
+
+function SpectrogramCompare({ selection }: { selection: number }) {
+  const [position, setPosition] = useState(50);
+  const beforeSrc = getSpectrogramBefore(selection);
+  const afterSrc = getSpectrogramAfter(selection);
 
   return (
-    <div className="flex items-center gap-3 px-3 py-2 rounded-xl bg-muted/40 border border-border/50">
-      <button
-        onClick={() => setPlaying((p) => !p)}
-        className={`flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center transition-all ${
-          playing ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground hover:text-primary"
-        }`}
-        aria-label={playing ? "Pause" : "Play"}
-      >
-        {playing ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3 ml-0.5" />}
-      </button>
-
-      <div className="flex-1 flex items-center gap-1 h-4">
-        {bars.map((h, i) => (
-          <div
-            key={i}
-            className={`rounded-full transition-all ${playing ? "bg-primary" : "bg-muted-foreground/40"}`}
-            style={{
-              width: "3px",
-              height: `${playing ? h * 6 : h * 3}%`,
-              minHeight: "2px",
-              animationDelay: `${i * 0.08}s`,
-            }}
-          />
-        ))}
+    <div className="rounded-xl border border-border bg-black p-4 shadow-[0_0_10px_rgba(0,255,136,0.2)]">
+      <div className="relative aspect-[16/9] overflow-hidden rounded-lg bg-black">
+        <img
+          src={beforeSrc}
+          alt={`Selection ${selection} before cleaning spectrogram`}
+          className="absolute inset-0 h-full w-full object-contain"
+        />
+        <img
+          src={afterSrc}
+          alt={`Selection ${selection} after cleaning spectrogram`}
+          className="absolute inset-0 h-full w-full object-contain"
+          style={{ clipPath: `inset(0 ${100 - position}% 0 0)` }}
+        />
+        <div className="absolute inset-y-0 z-10" style={{ left: `${position}%` }}>
+          <div className="h-full w-0.5 bg-primary shadow-[0_0_12px_rgba(0,255,136,0.7)]" />
+        </div>
       </div>
-
-      <div className="flex items-center gap-1 font-status text-muted-foreground">
-        <Volume2 className="w-3 h-3" />
-        <span>{label}</span>
-      </div>
+      <input
+        type="range"
+        min="0"
+        max="100"
+        value={position}
+        onChange={(event) => setPosition(Number(event.target.value))}
+        className="mt-4 w-full accent-[#00ff88]"
+      />
     </div>
   );
 }
 
-export function SpectrogramViewer({
-  beforeSrc = "/spectrograms/before-sample.jpg",
-  afterSrc = "/spectrograms/after-sample.jpg",
-  onAnalyze,
-  isAnalyzing = false,
-}: SpectrogramViewerProps) {
+export function SpectrogramViewer({ record, records }: SpectrogramViewerProps) {
+  const [openRecord, setOpenRecord] = useState<CallRecord | null>(null);
+  const grouped = useMemo(
+    () =>
+      noiseOrder.map((noiseType) => ({
+        noiseType,
+        records: records.filter((entry) => entry.noiseType === noiseType),
+      })),
+    [records]
+  );
+
+  const modalRecord = openRecord ?? record;
+  const audioSrc = modalRecord ? getAudioPath(modalRecord.selection) : null;
+
   return (
-    <div className="glass rounded-2xl p-5 flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <h2 className="font-section-header text-foreground">
-          Spectrogram Viewer
-        </h2>
-        <div className="flex items-center gap-2 font-status text-muted-foreground">
-          <span>0–500 Hz</span>
-          <div className="h-3 w-px bg-border" />
-          <span>48 kHz SR</span>
+    <>
+      <div className="glass rounded-2xl p-5">
+        <div className="mb-4 flex items-center justify-between">
+          <div>
+            <h2 className="text-sm font-semibold uppercase tracking-widest text-foreground">Spectrogram Viewer</h2>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Default selection loaded: {getSelectionLabel(record.selection)}
+            </p>
+          </div>
+          <button
+            type="button"
+            className="flex items-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground btn-glow-cyan transition hover:opacity-90"
+            onClick={() => setOpenRecord(record)}
+          >
+            <Play className="h-4 w-4" />
+            Clean &amp; Analyze
+          </button>
+        </div>
+
+        <div className="grid gap-4">
+          {grouped.map(({ noiseType, records: groupRecords }) =>
+            groupRecords.length ? (
+              <div key={noiseType} className="rounded-xl border border-border bg-card p-4">
+                <div className="mb-3 flex items-center justify-between">
+                  <h3 className="text-xs uppercase tracking-[0.28em] text-muted-foreground">{noiseType}</h3>
+                  <span className={`badge-neon rounded-full border px-3 py-1 text-xs uppercase ${getNoiseTone(noiseType)}`}>
+                    {groupRecords.length} calls
+                  </span>
+                </div>
+
+                <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                  {groupRecords.map((entry) => (
+                    <button
+                      key={entry.id}
+                      type="button"
+                      onClick={() => setOpenRecord(entry)}
+                      className={`rounded-xl border bg-[#0b0b16] p-3 text-left transition hover:border-primary/40 ${
+                        entry.id === record.id ? "border-primary shadow-[0_0_10px_rgba(0,255,136,0.3)]" : "border-border"
+                      }`}
+                    >
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="rounded-lg bg-black p-2">
+                          <img
+                            src={getSpectrogramBefore(entry.selection)}
+                            alt={`Selection ${entry.selection} before spectrogram`}
+                            className="h-28 w-full object-contain"
+                          />
+                        </div>
+                        <div className="rounded-lg bg-black p-2">
+                          <img
+                            src={getSpectrogramAfter(entry.selection)}
+                            alt={`Selection ${entry.selection} after spectrogram`}
+                            className="h-28 w-full object-contain"
+                          />
+                        </div>
+                      </div>
+                      <div className="mt-3 flex items-center justify-between">
+                        <div>
+                          <p className="stat-mono text-sm text-foreground">SEL {getSelectionLabel(entry.selection)}</p>
+                          <p className="mt-1 text-xs text-muted-foreground capitalize">{entry.noiseType}</p>
+                        </div>
+                        <span className={`badge-neon rounded-full border px-2.5 py-1 text-xs uppercase ${getNoiseTone(entry.noiseType)}`}>
+                          {entry.noiseType}
+                        </span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null
+          )}
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Before */}
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-amber-400" />
-            <span className="font-feature-label text-foreground">Before Cleaning</span>
-          </div>
-          <div className="relative rounded-xl overflow-hidden border border-border/50 aspect-[2/1] bg-muted/30">
-            <Image
-              src={beforeSrc}
-              alt="Spectrogram before noise cleaning"
-              fill
-              className="object-cover"
-            />
-            {/* Axis labels overlay */}
-            <div className="absolute inset-0 flex flex-col justify-between p-2 pointer-events-none">
-              <span className="font-status text-white/60 self-end">500 Hz</span>
-              <span className="font-status text-white/60 self-end">0 Hz</span>
-            </div>
-            <div className="absolute bottom-1 right-1 px-1.5 py-0.5 rounded bg-amber-500/20 border border-amber-500/30">
-              <span className="font-status text-amber-300">Noisy</span>
-            </div>
-          </div>
-          <MockAudioPlayer label="raw.wav" />
-        </div>
+      {openRecord ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+          <div className="glass relative max-h-[92vh] w-full max-w-5xl overflow-y-auto rounded-2xl p-5">
+            <button
+              type="button"
+              onClick={() => setOpenRecord(null)}
+              className="absolute right-4 top-4 rounded-full border border-border bg-card p-2 text-muted-foreground transition hover:text-foreground"
+            >
+              <X className="h-4 w-4" />
+            </button>
 
-        {/* After */}
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-            <span className="font-feature-label text-foreground">After Cleaning</span>
-          </div>
-          <div className="relative rounded-xl overflow-hidden border border-primary/20 aspect-[2/1] bg-muted/30 glow-cyan">
-            <Image
-              src={afterSrc}
-              alt="Spectrogram after noise cleaning"
-              fill
-              className="object-cover"
-            />
-            <div className="absolute inset-0 flex flex-col justify-between p-2 pointer-events-none">
-              <span className="font-status text-white/60 self-end">500 Hz</span>
-              <span className="font-status text-white/60 self-end">0 Hz</span>
+            <div className="mb-5">
+              <h3 className="text-xl font-semibold text-foreground">
+                Selection {getSelectionLabel(modalRecord.selection)}
+              </h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Before/after spectrogram slider with cleaned audio for {modalRecord.sound_file}
+              </p>
             </div>
-            <div className="absolute bottom-1 right-1 px-1.5 py-0.5 rounded bg-primary/20 border border-primary/30">
-              <span className="font-status text-primary">Clean</span>
-            </div>
-          </div>
-          <MockAudioPlayer label="clean.wav" />
-        </div>
-      </div>
 
-      {/* Clean & Analyze button */}
-      <button
-        onClick={onAnalyze}
-        disabled={isAnalyzing}
-        className="w-full py-3 rounded-xl font-semibold text-sm tracking-wide transition-all duration-300 
-          bg-primary text-primary-foreground btn-glow-cyan
-          hover:bg-primary/90 disabled:opacity-60 disabled:cursor-not-allowed
-          flex items-center justify-center gap-2"
-      >
-        <Zap className={`w-4 h-4 ${isAnalyzing ? "animate-spin" : ""}`} />
-        {isAnalyzing ? "Analyzing…" : "Clean & Analyze"}
-      </button>
-    </div>
+            <SpectrogramCompare selection={modalRecord.selection} />
+
+            <div className="mt-5 rounded-xl border border-border bg-card p-4">
+              <p className="mb-3 text-xs uppercase tracking-[0.28em] text-muted-foreground">Cleaned Audio</p>
+              {audioSrc ? (
+                <audio controls className="w-full">
+                  <source src={audioSrc} type="audio/wav" />
+                </audio>
+              ) : (
+                <p className="text-sm text-muted-foreground">No cleaned audio asset is available for this selection.</p>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </>
   );
 }

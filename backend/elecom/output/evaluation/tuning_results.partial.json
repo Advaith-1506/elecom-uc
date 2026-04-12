@@ -1,0 +1,641 @@
+[
+  {
+    "config": {
+      "wiener_scale": 0.85,
+      "blend_scale": 1.0,
+      "harmonic_threshold": 0.7
+    },
+    "metrics": {
+      "rows": 15,
+      "correlation_old_new_cleanability": 0.8172721586172036,
+      "improved_pct": 73.33333333333333,
+      "degraded_pct": 26.666666666666668,
+      "severe_degradation_pct": 6.666666666666667,
+      "harmonic_flag_pct": 26.666666666666668,
+      "energy_flag_pct": 6.666666666666667,
+      "delta_stats": {
+        "delta_cleanability": {
+          "mean": 7.376000000000001,
+          "median": 7.970000000000006,
+          "std": 17.426476080132456
+        },
+        "delta_snr": {
+          "mean": 4.802646666666665,
+          "median": 2.2866999999999997,
+          "std": 6.630910268891838
+        },
+        "delta_hnr": {
+          "mean": 3.548566666666666,
+          "median": 3.703499999999999,
+          "std": 5.15520546738463
+        },
+        "delta_harmonicCount": {
+          "mean": -3.066666666666667,
+          "median": 0.0,
+          "std": 5.351457300408482
+        },
+        "delta_energyDb": {
+          "mean": -0.4864066666666667,
+          "median": -0.5539000000000005,
+          "std": 2.4902405484687806
+        }
+      },
+      "objective": 11.775094333333334,
+      "by_noise": {
+        "airplane": {
+          "delta_cleanability": 18.238,
+          "delta_snr": 10.3038,
+          "delta_hnr": 3.5372,
+          "delta_harmonicCount": 0.0,
+          "delta_energyDb": 0.075,
+          "new_harmonicRetention": 1.3222
+        },
+        "generator": {
+          "delta_cleanability": 9.54,
+          "delta_snr": 4.5349,
+          "delta_hnr": 4.6631,
+          "delta_harmonicCount": 0.0,
+          "delta_energyDb": 0.9547,
+          "new_harmonicRetention": 0.98
+        },
+        "vehicle": {
+          "delta_cleanability": -5.65,
+          "delta_snr": -0.4308,
+          "delta_hnr": 2.4454,
+          "delta_harmonicCount": -9.2,
+          "delta_energyDb": -2.4889,
+          "new_harmonicRetention": 0.9
+        }
+      }
+    },
+    "failed": 0
+  },
+  {
+    "config": {
+      "wiener_scale": 1.0,
+      "blend_scale": 1.0,
+      "harmonic_threshold": 0.7
+    },
+    "metrics": {
+      "rows": 15,
+      "correlation_old_new_cleanability": 0.7795430092485287,
+      "improved_pct": 60.0,
+      "degraded_pct": 40.0,
+      "severe_degradation_pct": 6.666666666666667,
+      "harmonic_flag_pct": 33.33333333333333,
+      "energy_flag_pct": 6.666666666666667,
+      "delta_stats": {
+        "delta_cleanability": {
+          "mean": 7.8113333333333355,
+          "median": 5.840000000000003,
+          "std": 19.292416669572034
+        },
+        "delta_snr": {
+          "mean": 5.872399999999999,
+          "median": 2.2184999999999997,
+          "std": 8.694110405901228
+        },
+        "delta_hnr": {
+          "mean": 3.8018266666666665,
+          "median": 4.8334,
+          "std": 5.055031905009767
+        },
+        "delta_harmonicCount": {
+          "mean": -3.533333333333333,
+          "median": 0.0,
+          "std": 5.37011128731009
+        },
+        "delta_energyDb": {
+          "mean": -0.55118,
+          "median": -0.6268000000000011,
+          "std": 2.519576427894181
+        }
+      },
+      "objective": 10.981128000000002,
+      "by_noise": {
+        "airplane": {
+          "delta_cleanability": 20.388,
+          "delta_snr": 13.2245,
+          "delta_hnr": 4.0576,
+          "delta_harmonicCount": 0.0,
+          "delta_energyDb": 0.0066,
+          "new_harmonicRetention": 1.3222
+        },
+        "generator": {
+          "delta_cleanability": 9.28,
+          "delta_snr": 4.8743,
+          "delta_hnr": 4.6305,
+          "delta_harmonicCount": 0.0,
+          "delta_energyDb": 0.8787,
+          "new_harmonicRetention": 0.97
+        },
+        "vehicle": {
+          "delta_cleanability": -6.234,
+          "delta_snr": -0.4815,
+          "delta_hnr": 2.7174,
+          "delta_harmonicCount": -10.6,
+          "delta_energyDb": -2.5388,
+          "new_harmonicRetention": 0.9
+        }
+      }
+    },
+    "failed": 0
+  },
+  {
+    "config": {
+      "wiener_scale": 1.15,
+      "blend_scale": 1.0,
+      "harmonic_threshold": 0.7
+    },
+    "metrics": {
+      "rows": 15,
+      "correlation_old_new_cleanability": 0.7751079273715328,
+      "improved_pct": 60.0,
+      "degraded_pct": 40.0,
+      "severe_degradation_pct": 6.666666666666667,
+      "harmonic_flag_pct": 33.33333333333333,
+      "energy_flag_pct": 6.666666666666667,
+      "delta_stats": {
+        "delta_cleanability": {
+          "mean": 7.800000000000001,
+          "median": 6.050000000000004,
+          "std": 19.459633677362554
+        },
+        "delta_snr": {
+          "mean": 6.007859999999999,
+          "median": 2.3322,
+          "std": 8.894615577479605
+        },
+        "delta_hnr": {
+          "mean": 3.3643400000000003,
+          "median": 4.8349,
+          "std": 6.385045848901278
+        },
+        "delta_harmonicCount": {
+          "mean": -3.533333333333333,
+          "median": 0.0,
+          "std": 5.37011128731009
+        },
+        "delta_energyDb": {
+          "mean": -0.5980266666666664,
+          "median": -0.700899999999999,
+          "std": 2.5596136082471137
+        }
+      },
+      "objective": 10.899505666666666,
+      "by_noise": {
+        "airplane": {
+          "delta_cleanability": 20.388,
+          "delta_snr": 13.2245,
+          "delta_hnr": 4.0576,
+          "delta_harmonicCount": 0.0,
+          "delta_energyDb": 0.0066,
+          "new_harmonicRetention": 1.3222
+        },
+        "generator": {
+          "delta_cleanability": 8.972,
+          "delta_snr": 5.3365,
+          "delta_hnr": 4.5783,
+          "delta_harmonicCount": 0.0,
+          "delta_energyDb": 0.7883,
+          "new_harmonicRetention": 0.97
+        },
+        "vehicle": {
+          "delta_cleanability": -5.96,
+          "delta_snr": -0.5373,
+          "delta_hnr": 1.4572,
+          "delta_harmonicCount": -10.6,
+          "delta_energyDb": -2.589,
+          "new_harmonicRetention": 0.9
+        }
+      }
+    },
+    "failed": 0
+  },
+  {
+    "config": {
+      "wiener_scale": 0.85,
+      "blend_scale": 0.85,
+      "harmonic_threshold": 0.7
+    },
+    "metrics": {
+      "rows": 15,
+      "correlation_old_new_cleanability": 0.8392311379747094,
+      "improved_pct": 66.66666666666666,
+      "degraded_pct": 33.33333333333333,
+      "severe_degradation_pct": 6.666666666666667,
+      "harmonic_flag_pct": 26.666666666666668,
+      "energy_flag_pct": 6.666666666666667,
+      "delta_stats": {
+        "delta_cleanability": {
+          "mean": 6.8386666666666684,
+          "median": 6.870000000000001,
+          "std": 16.3351286088193
+        },
+        "delta_snr": {
+          "mean": 4.45706,
+          "median": 2.4866,
+          "std": 6.207499034324762
+        },
+        "delta_hnr": {
+          "mean": 3.7255200000000004,
+          "median": 3.0894,
+          "std": 4.467834710173214
+        },
+        "delta_harmonicCount": {
+          "mean": -3.066666666666667,
+          "median": 0.0,
+          "std": 5.351457300408482
+        },
+        "delta_energyDb": {
+          "mean": -0.4977933333333335,
+          "median": -0.568500000000002,
+          "std": 2.4796177088606295
+        }
+      },
+      "objective": 10.60199966666667,
+      "by_noise": {
+        "airplane": {
+          "delta_cleanability": 16.908,
+          "delta_snr": 9.5834,
+          "delta_hnr": 3.163,
+          "delta_harmonicCount": 0.0,
+          "delta_energyDb": 0.0583,
+          "new_harmonicRetention": 1.3222
+        },
+        "generator": {
+          "delta_cleanability": 9.808,
+          "delta_snr": 4.5059,
+          "delta_hnr": 4.9126,
+          "delta_harmonicCount": 0.0,
+          "delta_energyDb": 0.964,
+          "new_harmonicRetention": 0.98
+        },
+        "vehicle": {
+          "delta_cleanability": -6.2,
+          "delta_snr": -0.7181,
+          "delta_hnr": 3.101,
+          "delta_harmonicCount": -9.2,
+          "delta_energyDb": -2.5156,
+          "new_harmonicRetention": 0.9
+        }
+      }
+    },
+    "failed": 0
+  },
+  {
+    "config": {
+      "wiener_scale": 0.85,
+      "blend_scale": 1.0,
+      "harmonic_threshold": 0.7
+    },
+    "metrics": {
+      "rows": 15,
+      "correlation_old_new_cleanability": 0.8172721586172036,
+      "improved_pct": 73.33333333333333,
+      "degraded_pct": 26.666666666666668,
+      "severe_degradation_pct": 6.666666666666667,
+      "harmonic_flag_pct": 26.666666666666668,
+      "energy_flag_pct": 6.666666666666667,
+      "delta_stats": {
+        "delta_cleanability": {
+          "mean": 7.376000000000001,
+          "median": 7.970000000000006,
+          "std": 17.426476080132456
+        },
+        "delta_snr": {
+          "mean": 4.802646666666665,
+          "median": 2.2866999999999997,
+          "std": 6.630910268891838
+        },
+        "delta_hnr": {
+          "mean": 3.548566666666666,
+          "median": 3.703499999999999,
+          "std": 5.15520546738463
+        },
+        "delta_harmonicCount": {
+          "mean": -3.066666666666667,
+          "median": 0.0,
+          "std": 5.351457300408482
+        },
+        "delta_energyDb": {
+          "mean": -0.4864066666666667,
+          "median": -0.5539000000000005,
+          "std": 2.4902405484687806
+        }
+      },
+      "objective": 11.775094333333334,
+      "by_noise": {
+        "airplane": {
+          "delta_cleanability": 18.238,
+          "delta_snr": 10.3038,
+          "delta_hnr": 3.5372,
+          "delta_harmonicCount": 0.0,
+          "delta_energyDb": 0.075,
+          "new_harmonicRetention": 1.3222
+        },
+        "generator": {
+          "delta_cleanability": 9.54,
+          "delta_snr": 4.5349,
+          "delta_hnr": 4.6631,
+          "delta_harmonicCount": 0.0,
+          "delta_energyDb": 0.9547,
+          "new_harmonicRetention": 0.98
+        },
+        "vehicle": {
+          "delta_cleanability": -5.65,
+          "delta_snr": -0.4308,
+          "delta_hnr": 2.4454,
+          "delta_harmonicCount": -9.2,
+          "delta_energyDb": -2.4889,
+          "new_harmonicRetention": 0.9
+        }
+      }
+    },
+    "failed": 0
+  },
+  {
+    "config": {
+      "wiener_scale": 0.85,
+      "blend_scale": 1.1,
+      "harmonic_threshold": 0.7
+    },
+    "metrics": {
+      "rows": 15,
+      "correlation_old_new_cleanability": 0.8106101253714365,
+      "improved_pct": 66.66666666666666,
+      "degraded_pct": 33.33333333333333,
+      "severe_degradation_pct": 6.666666666666667,
+      "harmonic_flag_pct": 26.666666666666668,
+      "energy_flag_pct": 6.666666666666667,
+      "delta_stats": {
+        "delta_cleanability": {
+          "mean": 7.863333333333334,
+          "median": 7.940000000000005,
+          "std": 17.646578246490844
+        },
+        "delta_snr": {
+          "mean": 4.950113333333333,
+          "median": 2.9096,
+          "std": 6.775021206278532
+        },
+        "delta_hnr": {
+          "mean": 3.468973333333333,
+          "median": 4.241599999999999,
+          "std": 5.726557970103191
+        },
+        "delta_harmonicCount": {
+          "mean": -3.066666666666667,
+          "median": 0.0,
+          "std": 5.351457300408482
+        },
+        "delta_energyDb": {
+          "mean": -0.47893333333333327,
+          "median": -0.5431000000000008,
+          "std": 2.495686811185211
+        }
+      },
+      "objective": 11.771576333333334,
+      "by_noise": {
+        "airplane": {
+          "delta_cleanability": 18.86,
+          "delta_snr": 10.5431,
+          "delta_hnr": 3.7193,
+          "delta_harmonicCount": 0.0,
+          "delta_energyDb": 0.08,
+          "new_harmonicRetention": 1.3222
+        },
+        "generator": {
+          "delta_cleanability": 9.588,
+          "delta_snr": 4.5493,
+          "delta_hnr": 4.6825,
+          "delta_harmonicCount": 0.0,
+          "delta_energyDb": 0.9501,
+          "new_harmonicRetention": 0.98
+        },
+        "vehicle": {
+          "delta_cleanability": -4.858,
+          "delta_snr": -0.2421,
+          "delta_hnr": 2.0051,
+          "delta_harmonicCount": -9.2,
+          "delta_energyDb": -2.467,
+          "new_harmonicRetention": 0.9
+        }
+      }
+    },
+    "failed": 0
+  },
+  {
+    "config": {
+      "wiener_scale": 0.85,
+      "blend_scale": 1.0,
+      "harmonic_threshold": 0.65
+    },
+    "metrics": {
+      "rows": 15,
+      "correlation_old_new_cleanability": 0.8172721586172036,
+      "improved_pct": 73.33333333333333,
+      "degraded_pct": 26.666666666666668,
+      "severe_degradation_pct": 6.666666666666667,
+      "harmonic_flag_pct": 26.666666666666668,
+      "energy_flag_pct": 6.666666666666667,
+      "delta_stats": {
+        "delta_cleanability": {
+          "mean": 7.376000000000001,
+          "median": 7.970000000000006,
+          "std": 17.426476080132456
+        },
+        "delta_snr": {
+          "mean": 4.802646666666665,
+          "median": 2.2866999999999997,
+          "std": 6.630910268891838
+        },
+        "delta_hnr": {
+          "mean": 3.548566666666666,
+          "median": 3.703499999999999,
+          "std": 5.15520546738463
+        },
+        "delta_harmonicCount": {
+          "mean": -3.066666666666667,
+          "median": 0.0,
+          "std": 5.351457300408482
+        },
+        "delta_energyDb": {
+          "mean": -0.4864066666666667,
+          "median": -0.5539000000000005,
+          "std": 2.4902405484687806
+        }
+      },
+      "objective": 11.775094333333334,
+      "by_noise": {
+        "airplane": {
+          "delta_cleanability": 18.238,
+          "delta_snr": 10.3038,
+          "delta_hnr": 3.5372,
+          "delta_harmonicCount": 0.0,
+          "delta_energyDb": 0.075,
+          "new_harmonicRetention": 1.3222
+        },
+        "generator": {
+          "delta_cleanability": 9.54,
+          "delta_snr": 4.5349,
+          "delta_hnr": 4.6631,
+          "delta_harmonicCount": 0.0,
+          "delta_energyDb": 0.9547,
+          "new_harmonicRetention": 0.98
+        },
+        "vehicle": {
+          "delta_cleanability": -5.65,
+          "delta_snr": -0.4308,
+          "delta_hnr": 2.4454,
+          "delta_harmonicCount": -9.2,
+          "delta_energyDb": -2.4889,
+          "new_harmonicRetention": 0.9
+        }
+      }
+    },
+    "failed": 0
+  },
+  {
+    "config": {
+      "wiener_scale": 0.85,
+      "blend_scale": 1.0,
+      "harmonic_threshold": 0.7
+    },
+    "metrics": {
+      "rows": 15,
+      "correlation_old_new_cleanability": 0.8172721586172036,
+      "improved_pct": 73.33333333333333,
+      "degraded_pct": 26.666666666666668,
+      "severe_degradation_pct": 6.666666666666667,
+      "harmonic_flag_pct": 26.666666666666668,
+      "energy_flag_pct": 6.666666666666667,
+      "delta_stats": {
+        "delta_cleanability": {
+          "mean": 7.376000000000001,
+          "median": 7.970000000000006,
+          "std": 17.426476080132456
+        },
+        "delta_snr": {
+          "mean": 4.802646666666665,
+          "median": 2.2866999999999997,
+          "std": 6.630910268891838
+        },
+        "delta_hnr": {
+          "mean": 3.548566666666666,
+          "median": 3.703499999999999,
+          "std": 5.15520546738463
+        },
+        "delta_harmonicCount": {
+          "mean": -3.066666666666667,
+          "median": 0.0,
+          "std": 5.351457300408482
+        },
+        "delta_energyDb": {
+          "mean": -0.4864066666666667,
+          "median": -0.5539000000000005,
+          "std": 2.4902405484687806
+        }
+      },
+      "objective": 11.775094333333334,
+      "by_noise": {
+        "airplane": {
+          "delta_cleanability": 18.238,
+          "delta_snr": 10.3038,
+          "delta_hnr": 3.5372,
+          "delta_harmonicCount": 0.0,
+          "delta_energyDb": 0.075,
+          "new_harmonicRetention": 1.3222
+        },
+        "generator": {
+          "delta_cleanability": 9.54,
+          "delta_snr": 4.5349,
+          "delta_hnr": 4.6631,
+          "delta_harmonicCount": 0.0,
+          "delta_energyDb": 0.9547,
+          "new_harmonicRetention": 0.98
+        },
+        "vehicle": {
+          "delta_cleanability": -5.65,
+          "delta_snr": -0.4308,
+          "delta_hnr": 2.4454,
+          "delta_harmonicCount": -9.2,
+          "delta_energyDb": -2.4889,
+          "new_harmonicRetention": 0.9
+        }
+      }
+    },
+    "failed": 0
+  },
+  {
+    "config": {
+      "wiener_scale": 0.85,
+      "blend_scale": 1.0,
+      "harmonic_threshold": 0.75
+    },
+    "metrics": {
+      "rows": 15,
+      "correlation_old_new_cleanability": 0.8172721586172036,
+      "improved_pct": 73.33333333333333,
+      "degraded_pct": 26.666666666666668,
+      "severe_degradation_pct": 6.666666666666667,
+      "harmonic_flag_pct": 26.666666666666668,
+      "energy_flag_pct": 6.666666666666667,
+      "delta_stats": {
+        "delta_cleanability": {
+          "mean": 7.376000000000001,
+          "median": 7.970000000000006,
+          "std": 17.426476080132456
+        },
+        "delta_snr": {
+          "mean": 4.802646666666665,
+          "median": 2.2866999999999997,
+          "std": 6.630910268891838
+        },
+        "delta_hnr": {
+          "mean": 3.548566666666666,
+          "median": 3.703499999999999,
+          "std": 5.15520546738463
+        },
+        "delta_harmonicCount": {
+          "mean": -3.066666666666667,
+          "median": 0.0,
+          "std": 5.351457300408482
+        },
+        "delta_energyDb": {
+          "mean": -0.4864066666666667,
+          "median": -0.5539000000000005,
+          "std": 2.4902405484687806
+        }
+      },
+      "objective": 11.775094333333334,
+      "by_noise": {
+        "airplane": {
+          "delta_cleanability": 18.238,
+          "delta_snr": 10.3038,
+          "delta_hnr": 3.5372,
+          "delta_harmonicCount": 0.0,
+          "delta_energyDb": 0.075,
+          "new_harmonicRetention": 1.3222
+        },
+        "generator": {
+          "delta_cleanability": 9.54,
+          "delta_snr": 4.5349,
+          "delta_hnr": 4.6631,
+          "delta_harmonicCount": 0.0,
+          "delta_energyDb": 0.9547,
+          "new_harmonicRetention": 0.98
+        },
+        "vehicle": {
+          "delta_cleanability": -5.65,
+          "delta_snr": -0.4308,
+          "delta_hnr": 2.4454,
+          "delta_harmonicCount": -9.2,
+          "delta_energyDb": -2.4889,
+          "new_harmonicRetention": 0.9
+        }
+      }
+    },
+    "failed": 0
+  }
+]

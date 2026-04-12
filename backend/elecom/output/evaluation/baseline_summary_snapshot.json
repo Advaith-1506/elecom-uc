@@ -1,0 +1,40 @@
+{
+  "totalCallsProcessed": 15,
+  "totalCallsFailed": 0,
+  "avgCleanabilityScore": 43.912,
+  "avgSnrImprovement": 4.9434,
+  "avgHnrImprovement": 1.2551,
+  "avgF0Hz": 16.2856,
+  "multipleCallerFlags": 15,
+  "byNoiseType": {
+    "generator": {
+      "avgCleanabilityScore": 54.652,
+      "avgSnrImprovement": 9.1078,
+      "avgF0Hz": 14.4233,
+      "callCount": 5
+    },
+    "vehicle": {
+      "avgCleanabilityScore": 22.412,
+      "avgSnrImprovement": -6.5754,
+      "avgF0Hz": 18.309,
+      "callCount": 5
+    },
+    "airplane": {
+      "avgCleanabilityScore": 54.672,
+      "avgSnrImprovement": 12.2979,
+      "avgF0Hz": 16.1244,
+      "callCount": 5
+    }
+  },
+  "byCallType": {
+    "rumble": {
+      "avgCleanabilityScore": 43.912,
+      "callCount": 15
+    }
+  },
+  "tierUsage": {
+    "tier1": 15,
+    "tier2": 0,
+    "tier3": 0
+  }
+}

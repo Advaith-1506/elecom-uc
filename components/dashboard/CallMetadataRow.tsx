@@ -1,65 +1,42 @@
 "use client";
 
-import { AlertTriangle, Users } from "lucide-react";
-import type { CallType, NoiseType } from "@/lib/types";
-
-const callTypeBadge: Record<CallType, string> = {
-  rumble: "bg-cyan-400/15 text-cyan-300 border-cyan-400/30",
-  trumpet: "bg-violet-400/15 text-violet-300 border-violet-400/30",
-  roar: "bg-amber-400/15 text-amber-300 border-amber-400/30",
-};
-
-const noiseTypeBadge: Record<NoiseType, string> = {
-  wind: "bg-slate-400/15 text-slate-300 border-slate-400/30",
-  vehicle: "bg-red-400/15 text-red-300 border-red-400/30",
-  rain: "bg-blue-400/15 text-blue-300 border-blue-400/30",
-  insects: "bg-emerald-400/15 text-emerald-300 border-emerald-400/30",
-};
+import type { CallRecord } from "@/lib/types";
+import { getCallTypeTone, getNoiseTone } from "@/lib/dashboard";
 
 interface CallMetadataRowProps {
-  callType: CallType;
-  noiseType: NoiseType;
-  multipleCallers: boolean;
+  record: CallRecord;
 }
 
-export function CallMetadataRow({ callType, noiseType, multipleCallers }: CallMetadataRowProps) {
+function MetaStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="glass rounded-2xl px-5 py-4 flex flex-wrap items-center gap-4">
-      <div className="flex items-center gap-2">
-        <span className="font-status text-muted-foreground">Call Type</span>
-        <span
-          className={`font-badge px-3 py-1 rounded-full border ${callTypeBadge[callType]}`}
-        >
-          {callType}
+    <div className="rounded-xl border border-border bg-card px-3 py-3 shadow-[0_0_10px_rgba(0,255,136,0.15)]">
+      <p className="text-[10px] uppercase tracking-[0.28em] text-muted-foreground">{label}</p>
+      <p className="mt-1 stat-mono text-sm text-foreground">{value}</p>
+    </div>
+  );
+}
+
+export function CallMetadataRow({ record }: CallMetadataRowProps) {
+  return (
+    <div className="glass rounded-2xl p-5">
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <span className={`badge-neon rounded-full border px-3 py-1 text-xs uppercase tracking-wider ${getCallTypeTone(record.callType)}`}>
+          {record.callType}
+        </span>
+        <span className={`badge-neon rounded-full border px-3 py-1 text-xs uppercase tracking-wider ${getNoiseTone(record.noiseType)}`}>
+          {record.noiseType}
         </span>
       </div>
 
-      <div className="h-4 w-px bg-border" />
-
-      <div className="flex items-center gap-2">
-        <span className="font-status text-muted-foreground">Noise Type</span>
-        <span
-          className={`font-badge px-3 py-1 rounded-full border ${noiseTypeBadge[noiseType]}`}
-        >
-          {noiseType}
-        </span>
-      </div>
-
-      <div className="h-4 w-px bg-border" />
-
-      <div className="flex items-center gap-2">
-        <Users className="w-3.5 h-3.5 text-muted-foreground" />
-        <span className="font-status text-muted-foreground">Multiple Callers</span>
-        {multipleCallers ? (
-          <span className="flex items-center gap-1 font-badge px-2.5 py-1 rounded-full border bg-amber-400/15 text-amber-300 border-amber-400/30">
-            <AlertTriangle className="w-3 h-3" />
-            Detected
-          </span>
-        ) : (
-          <span className="font-badge px-2.5 py-1 rounded-full border bg-emerald-400/15 text-emerald-300 border-emerald-400/30">
-            Clear
-          </span>
-        )}
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-8">
+        <MetaStat label="f0" value={`${record.f0.toFixed(1)} Hz`} />
+        <MetaStat label="Harmonics" value={String(record.harmonicCount)} />
+        <MetaStat label="HNR Before" value={`${record.hnrBefore.toFixed(1)} dB`} />
+        <MetaStat label="HNR After" value={`${record.hnrAfter.toFixed(1)} dB`} />
+        <MetaStat label="Duration" value={`${record.duration.toFixed(2)} s`} />
+        <MetaStat label="FM Depth" value={`${record.fmDepth.toFixed(1)} Hz`} />
+        <MetaStat label="Spectral Centroid" value={`${record.spectralCentroid.toFixed(1)} Hz`} />
+        <MetaStat label="Energy" value={`${record.energyDb.toFixed(1)} dB`} />
       </div>
     </div>
   );
