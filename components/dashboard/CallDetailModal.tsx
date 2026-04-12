@@ -121,7 +121,7 @@ export function CallDetailModal({ record, open, onOpenChange }: CallDetailModalP
                 </div>
                 <div className="mt-4">
                   {audioSrc ? (
-                    <audio controls className="w-full">
+                    <audio key={audioSrc} controls className="w-full">
                       <source src={audioSrc} type="audio/wav" />
                     </audio>
                   ) : (

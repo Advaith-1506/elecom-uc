@@ -167,7 +167,7 @@ export function SpectrogramViewer({ record, records }: SpectrogramViewerProps) {
             <div className="mt-5 rounded-xl border border-border bg-card p-4">
               <p className="mb-3 text-xs uppercase tracking-[0.28em] text-muted-foreground">Cleaned Audio</p>
               {audioSrc ? (
-                <audio controls className="w-full">
+                <audio key={audioSrc} controls className="w-full">
                   <source src={audioSrc} type="audio/wav" />
                 </audio>
               ) : (

@@ -2,8 +2,13 @@
 
 import { useMemo, useState } from "react";
 import type { CallRecord } from "@/lib/types";
-import { analyzeSpectrogramImage } from "@/lib/gemini";
-import { getSpectrogramAfter } from "@/lib/dashboard";
+import {
+  analyzeSpectrogramImage,
+  GEMINI_FALLBACK_MODEL,
+  GEMINI_PRIMARY_MODEL,
+  getGeminiDisplayError,
+} from "@/lib/gemini";
+import { getSelectionLabel, getSpectrogramAfter } from "@/lib/dashboard";
 
 type ParsedSpectrogram = {
   harmonicStructure: string;
@@ -83,8 +88,10 @@ export function GeminiSpectrogramPanel({ call }: { call: CallRecord }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [response, setResponse] = useState<ParsedSpectrogram | null>(null);
+  const [modelUsed, setModelUsed] = useState(GEMINI_PRIMARY_MODEL);
 
   const prompt = useMemo(() => buildPrompt(call), [call]);
+  const imageUrl = useMemo(() => getSpectrogramAfter(call.selection), [call.selection]);
 
   async function handleAnalyze() {
     if (!process.env.NEXT_PUBLIC_GEMINI_API_KEY) {
@@ -95,12 +102,14 @@ export function GeminiSpectrogramPanel({ call }: { call: CallRecord }) {
 
     setLoading(true);
     setError("");
+    setModelUsed(GEMINI_PRIMARY_MODEL);
 
     try {
-      const text = await analyzeSpectrogramImage(getSpectrogramAfter(call.selection), prompt);
-      setResponse(parseResponse(text));
-    } catch {
-      setError("Analysis unavailable — check API key");
+      const result = await analyzeSpectrogramImage(imageUrl, prompt);
+      setResponse(parseResponse(result.text));
+      setModelUsed(result.model);
+    } catch (error) {
+      setError(getGeminiDisplayError(error));
     } finally {
       setLoading(false);
     }
@@ -113,10 +122,14 @@ export function GeminiSpectrogramPanel({ call }: { call: CallRecord }) {
       <div className="mb-4 flex items-center justify-between gap-3">
         <div>
           <h3 className="text-base font-semibold text-[#00ff88]">🔬 Spectrogram Analysis</h3>
-          <p className="mt-1 text-xs text-white/52">Gemini-assisted review of the cleaned spectrogram.</p>
+          <p className="mt-1 text-xs text-white/52">
+            Gemini-assisted review of selection {getSelectionLabel(call.selection)} using the cleaned AFTER spectrogram.
+          </p>
         </div>
         <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[0.65rem] uppercase tracking-[0.18em] text-white/55">
-          gemini-2.5-flash — multimodal
+          {modelUsed === GEMINI_FALLBACK_MODEL
+            ? `${GEMINI_FALLBACK_MODEL} fallback — multimodal`
+            : `${GEMINI_PRIMARY_MODEL} — multimodal`}
         </span>
       </div>
 
@@ -129,6 +142,11 @@ export function GeminiSpectrogramPanel({ call }: { call: CallRecord }) {
         {response ? "Re-analyze" : "Analyze Spectrogram with Gemini"}
       </button>
 
+      <div className="mt-3 rounded-xl border border-white/8 bg-white/[0.04] px-3 py-2 text-xs text-white/64">
+        Analyzing: <span className="stat-mono text-white">Selection {getSelectionLabel(call.selection)}</span> —{" "}
+        <span className="stat-mono text-[#00ff88]">{imageUrl}</span>
+      </div>
+
       {loading ? (
         <div className="mt-4 rounded-2xl border border-white/8 bg-white/[0.04] px-4 py-4">
           <p className="text-sm text-white/72">Reading spectrogram...</p>
@@ -139,7 +157,7 @@ export function GeminiSpectrogramPanel({ call }: { call: CallRecord }) {
       ) : null}
 
       {!loading && error ? (
-        <div className="mt-4 rounded-2xl border border-red-400/20 bg-red-500/8 px-4 py-4 text-sm text-red-200/80">
+        <div className="mt-4 rounded-2xl border border-red-400/20 bg-red-500/8 px-4 py-4 text-sm text-red-200/80 whitespace-pre-wrap">
           {error}
         </div>
       ) : null}

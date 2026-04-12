@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { Headphones, SlidersHorizontal, Volume2, Waves, X } from "lucide-react";
+import { Headphones, SlidersHorizontal, Waves, X } from "lucide-react";
 import { CleanabilityRing } from "@/components/dashboard/CleanabilityRing";
 import { GeminiBehaviorPanel } from "@/components/dashboard/GeminiBehaviorPanel";
 import type { CallRecord, NoiseType, SummaryRecord } from "@/lib/types";
@@ -354,6 +354,12 @@ export function HerdMapScene({ records, summary }: { records: CallRecord[]; summ
 
         <WaterHole />
 
+        <div className="absolute bottom-5 left-5 z-20 rounded-2xl border border-white/12 border-l-[3px] border-l-[#00ff88] bg-[rgba(18,18,42,0.9)] px-4 py-3 shadow-[0_0_18px_rgba(0,0,0,0.18)] backdrop-blur-sm">
+          <p className="text-xs font-semibold text-white">🐘 ElephantVoices Research Data</p>
+          <p className="mt-1 text-[0.7rem] text-white/72">44 recordings • Amboseli, Kenya</p>
+          <p className="mt-1 text-[0.7rem] text-white/58">Loaded via Google Drive API</p>
+        </div>
+
         <div className="absolute inset-x-0 bottom-0 h-[11%] bg-[#507f24]" />
 
         {filtered.map((record) => (
@@ -418,7 +424,7 @@ export function HerdMapScene({ records, summary }: { records: CallRecord[]; summ
                 <p className="text-xs uppercase tracking-[0.28em] text-white/60">Cleaned Audio Relay</p>
               </div>
               {activeAudio ? (
-                <audio controls className="w-full">
+                <audio key={activeAudio} controls className="w-full">
                   <source src={activeAudio} type="audio/wav" />
                 </audio>
               ) : (
@@ -448,19 +454,6 @@ export function HerdMapScene({ records, summary }: { records: CallRecord[]; summ
               <DetailRow label="tier" value={`Tier ${selected.maskTierUsed}`} />
             </div>
 
-            <div className="mt-6 rounded-2xl border border-white/12 bg-white/[0.08] p-4">
-              <div className="mb-3 flex items-center gap-2">
-                <Volume2 className="h-4 w-4 text-amber-200" />
-                <p className="text-xs uppercase tracking-[0.28em] text-white/60">Field Notes</p>
-              </div>
-              <p className="text-sm leading-6 text-white/78">
-                This elephant carries a {selected.noiseType} saddle mark and a cleanability score of{" "}
-                <span className="stat-mono font-bold text-white">{selected.cleanabilityScore.toFixed(1)}</span>. The backend now reports a corrected rumble fundamental of{" "}
-                <span className="stat-mono font-bold text-white">{selected.f0.toFixed(1)} Hz</span>, with{" "}
-                <span className="stat-mono font-bold text-white">{selected.harmonicCount}</span> retained harmonics and{" "}
-                <span className="stat-mono font-bold text-white">{(selected.wienerStrength ?? 0).toFixed(2)}</span> adaptive Wiener strength.
-              </p>
-            </div>
           </aside>
         ) : null}
       </section>
