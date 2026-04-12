@@ -47,23 +47,25 @@ def compute_snr_improvement(original_audio: np.ndarray, cleaned_audio: np.ndarra
     start_idx = int(call_start * sr)
     end_idx = int(call_end * sr)
     
-    def get_snr(audio: np.ndarray) -> float:
-        # Separate the actual call window from the surrounding noise
-        signal = audio[start_idx:end_idx]
-        noise_pre = audio[:start_idx]
-        noise_post = audio[end_idx:]
-        noise = np.concatenate((noise_pre, noise_post))
-        
-        # Guard against fully filled window without noise
-        signal_rms = np.sqrt(np.mean(signal**2)) if len(signal) > 0 else 0.0
-        noise_rms = np.sqrt(np.mean(noise**2)) if len(noise) > 0 else 0.0
-        
-        # Calculate SNR db
-        snr = 20 * np.log10(signal_rms / (noise_rms + 1e-8))
-        return snr
+    # Original
+    signal_before = original_audio[start_idx:end_idx]
+    noise_before = np.concatenate((original_audio[:start_idx], original_audio[end_idx:]))
+    
+    signal_rms_before = np.sqrt(np.mean(signal_before**2)) if len(signal_before) > 0 else 0.0
+    noise_rms_before = np.sqrt(np.mean(noise_before**2)) if len(noise_before) > 0 else 0.0
+    snr_before = 20 * np.log10(signal_rms_before / (noise_rms_before + 1e-8))
 
-    snr_before = get_snr(original_audio)
-    snr_after = get_snr(cleaned_audio)
+    # Cleaned relative indices
+    segment_start_idx = max(0, int((call_start - PAD_SECONDS) * sr))
+    rel_start_idx = start_idx - segment_start_idx
+    rel_end_idx = rel_start_idx + (end_idx - start_idx)
+    
+    signal_after = cleaned_audio[rel_start_idx:rel_end_idx]
+    noise_after = np.concatenate((cleaned_audio[:rel_start_idx], cleaned_audio[rel_end_idx:]))
+    
+    signal_rms_after = np.sqrt(np.mean(signal_after**2)) if len(signal_after) > 0 else 0.0
+    noise_rms_after = np.sqrt(np.mean(noise_after**2)) if len(noise_after) > 0 else 0.0
+    snr_after = 20 * np.log10(signal_rms_after / (noise_rms_after + 1e-8))
     
     return {
         "snr_before_db": float(snr_before),
@@ -75,8 +77,9 @@ def plot_waveform_comparison(original: np.ndarray, cleaned: np.ndarray, sr: int,
     """
     Generates a high-quality visualization comparing original and finalized audio signals.
     """
-    time_orig = np.arange(len(original)) / sr
-    time_clean = np.arange(len(cleaned)) / sr
+    segment_start_time = max(0, call_start - PAD_SECONDS)
+    time_orig = segment_start_time + np.arange(len(original)) / sr
+    time_clean = segment_start_time + np.arange(len(cleaned)) / sr
     
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(14, 6), sharex=True)
     
@@ -95,7 +98,7 @@ def plot_waveform_comparison(original: np.ndarray, cleaned: np.ndarray, sr: int,
     ax2.axvspan(call_start, call_end, color='green', alpha=0.2, label='Call Region')
     ax2.axvline(call_start, color='red', linestyle='--')
     ax2.axvline(call_end, color='red', linestyle='--')
-    ax2.set_xlabel("Time (seconds)")
+    ax2.set_xlabel("Absolute Time (seconds)")
     ax2.set_ylabel("Amplitude")
     ax2.legend(loc='upper right')
     

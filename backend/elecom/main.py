@@ -80,7 +80,7 @@ def process_single_call(row, audio_cache: dict) -> dict:
     reconstruction.save_audio(cleaned, sr, f"output/audio/{sound_file}_call_{sel}_cleaned.wav")
     
     # p. SNR
-    snr_dict = reconstruction.compute_snr_improvement(segment, cleaned, start_time, end_time, sr)
+    snr_dict = reconstruction.compute_snr_improvement(audio, cleaned, start_time, end_time, sr)
     
     # q. Plot before
     spectrogram.plot_spectrogram(magnitude_db, sr, f"Before — Call {sel}", f"output/spectrograms/{sel}_before.png")
@@ -202,7 +202,7 @@ def main():
     print("Initializing Elephant Communications Pipeline...")
     
     # 1. Mount and Download
-    loader.mount_drive_and_download()
+    # loader.mount_drive_and_download()
     
     # 2. Load spreadsheet
     df = loader.load_spreadsheet("data/calls.csv")
@@ -215,6 +215,9 @@ def main():
     # Phase validation protocols
     validate_phase1(df)
     validate_phase2(df)
+    
+    print("\n[DEBUG] Stopping after Phase 2 per user request.")
+    sys.exit(0)
     
     print("\n--- Running Full Batch Pipeline ---")
     audio_cache = {}
