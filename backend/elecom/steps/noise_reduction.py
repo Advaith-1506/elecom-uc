@@ -4,11 +4,12 @@ from typing import Optional
 import numpy as np
 import scipy.signal
 import scipy.ndimage
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+import numba_compat  # noqa: F401
 import librosa
 import noisereduce as nr
 
 # Add parent directory to path to allow direct import from config
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from config import *
 
 
@@ -61,8 +62,8 @@ def resolve_adaptive_params(noise_type: str, noise_reference: np.ndarray, sr: in
     }
 
 def apply_noisereduce(audio_segment: np.ndarray, noise_reference: np.ndarray, sr: int, noise_type: str = "unknown") -> np.ndarray:
-    stationary_noise = noise_type in ("generator", "airplane")
-    prop_decrease = 0.9 if noise_type == "generator" else 0.8
+    stationary_noise = STATIONARY_NOISE_BY_TYPE.get(noise_type, False)
+    prop_decrease = NOISEREDUCE_PROP_BY_NOISE.get(noise_type, 0.72)
 
     cleaned = nr.reduce_noise(
         y=audio_segment,
@@ -99,13 +100,14 @@ def detect_noise_frequency(audio: np.ndarray, sr: int, noise_type: str) -> np.nd
     """
     if noise_type == "vehicle":
         f, Pxx = scipy.signal.welch(audio, fs=sr, nperseg=N_FFT)
-        valid_idx = np.where((f >= 20) & (f <= 100))[0]
+        valid_idx = np.where((f >= VEHICLE_NOTCH_MIN_FREQ) & (f <= 100))[0]
         if len(valid_idx) > 0:
             dom_idx = valid_idx[np.argmax(Pxx[valid_idx])]
             dom_f = f[dom_idx]
-            b, a = scipy.signal.iirnotch(dom_f, Q=15, fs=sr)
-            audio = scipy.signal.filtfilt(b, a, audio)
-            print(f"Vehicle noise peak detected at {dom_f:.1f} Hz — removed")
+            if dom_f >= VEHICLE_NOTCH_MIN_FREQ:
+                b, a = scipy.signal.iirnotch(dom_f, Q=15, fs=sr)
+                audio = scipy.signal.filtfilt(b, a, audio)
+                print(f"Vehicle noise peak detected at {dom_f:.1f} Hz — removed")
             
     elif noise_type == "airplane":
         f, Pxx = scipy.signal.welch(audio, fs=sr, nperseg=N_FFT)

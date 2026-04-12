@@ -1,6 +1,9 @@
 import os
 import sys
+from typing import Optional
 import numpy as np
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+import numba_compat  # noqa: F401
 import librosa
 import scipy.signal
 
@@ -18,11 +21,61 @@ def safe_round(val, ndigits=4):
     return round(float(val), ndigits)
 
 
-def count_harmonics_from_magnitude(magnitude: np.ndarray, f0_contour: np.ndarray, freq_bins: np.ndarray) -> int:
-    with np.errstate(all='ignore'):
-        f0_hz = np.nanmedian(f0_contour)
+def _mean_db_spectrum(magnitude: np.ndarray) -> np.ndarray:
+    return librosa.amplitude_to_db(np.mean(magnitude, axis=1) + 1e-10)
 
-    db_spectrum = librosa.amplitude_to_db(np.mean(magnitude, axis=1) + 1e-10)
+
+def _candidate_support_score(candidate_f0: float, db_spectrum: np.ndarray, freq_bins: np.ndarray) -> float:
+    score = 0.0
+    for k in range(1, 9):
+        harmonic_freq = candidate_f0 * k
+        if harmonic_freq > min(FREQ_MAX, 180.0):
+            break
+        bin_idx = int(np.argmin(np.abs(freq_bins - harmonic_freq)))
+        left = max(0, bin_idx - 1)
+        right = min(len(db_spectrum), bin_idx + 2)
+        local_peak = float(np.max(db_spectrum[left:right]))
+        score += max(local_peak - NOISE_FLOOR_DB, 0.0) / np.sqrt(k)
+
+    target_bonus = 1.0 - min(abs(candidate_f0 - RUMBLE_F0_TARGET_CENTER) / 10.0, 1.0)
+    return score + 3.0 * target_bonus
+
+
+def estimate_rumble_f0(
+    f0_contour: np.ndarray,
+    magnitude: Optional[np.ndarray] = None,
+    freq_bins: Optional[np.ndarray] = None,
+) -> float:
+    with np.errstate(all='ignore'):
+        raw_f0 = np.nanmedian(f0_contour)
+
+    if np.isnan(raw_f0) or raw_f0 <= 0:
+        return raw_f0
+
+    candidate_values = [raw_f0, raw_f0 / 2.0, raw_f0 * 2.0]
+    candidates = sorted({
+        float(np.clip(candidate, RUMBLE_F0_LOW, RUMBLE_F0_HIGH))
+        for candidate in candidate_values
+        if candidate > 0
+    })
+
+    if not candidates:
+        return correct_rumble_f0(raw_f0)
+
+    if magnitude is None or freq_bins is None:
+        return correct_rumble_f0(raw_f0)
+
+    db_spectrum = _mean_db_spectrum(magnitude)
+    best_candidate = max(
+        candidates,
+        key=lambda candidate: _candidate_support_score(candidate, db_spectrum, freq_bins),
+    )
+    return float(np.clip(best_candidate, RUMBLE_F0_LOW, RUMBLE_F0_HIGH))
+
+
+def count_harmonics_from_magnitude(magnitude: np.ndarray, f0_contour: np.ndarray, freq_bins: np.ndarray) -> int:
+    f0_hz = estimate_rumble_f0(f0_contour, magnitude, freq_bins)
+    db_spectrum = _mean_db_spectrum(magnitude)
     harmonic_count = 0
     if not np.isnan(f0_hz) and f0_hz > 0:
         for k in range(1, 21):
@@ -38,11 +91,11 @@ def count_harmonics_from_magnitude(magnitude: np.ndarray, f0_contour: np.ndarray
 def correct_rumble_f0(f0_hz: float) -> float:
     if np.isnan(f0_hz) or f0_hz <= 0:
         return f0_hz
-    if f0_hz > 25.0:
+    if f0_hz > RUMBLE_F0_HIGH:
         f0_hz /= 2.0
-    if f0_hz < 8.0:
+    if f0_hz < RUMBLE_F0_LOW:
         f0_hz *= 2.0
-    return float(np.clip(f0_hz, 8.0, 25.0))
+    return float(np.clip(f0_hz, RUMBLE_F0_LOW, RUMBLE_F0_HIGH))
 
 def extract_features(call_row: dict, raw_audio: np.ndarray, cleaned_audio: np.ndarray, 
                      masked_magnitude: np.ndarray, f0_contour: np.ndarray, 
@@ -53,9 +106,7 @@ def extract_features(call_row: dict, raw_audio: np.ndarray, cleaned_audio: np.nd
     """
     
     # 1. Fundamental Frequency Median
-    with np.errstate(all='ignore'):
-        f0_hz = np.nanmedian(f0_contour)
-    f0_hz = correct_rumble_f0(f0_hz)
+    f0_hz = estimate_rumble_f0(f0_contour, masked_magnitude, freq_bins)
         
     # 2. Harmonic Count Filtered by Noise Floor
     harmonic_count = count_harmonics_from_magnitude(masked_magnitude, f0_contour, freq_bins)
@@ -161,7 +212,7 @@ def compute_cleanability_scores(all_features: list[dict]) -> list[dict]:
         ) * 100.0
 
         if f.get('multipleCallers'):
-            score -= 6.0
+            score -= 3.5
         if f.get('snrImprovement', 0.0) < 0:
             score -= 8.0
         harmonic_retention = float(f.get('harmonicRetention', 1.0))

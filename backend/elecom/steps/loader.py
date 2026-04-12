@@ -1,8 +1,13 @@
 import os
 import gdown
+import sys
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+import numba_compat  # noqa: F401
 import librosa
 import numpy as np
 import pandas as pd
+import soundfile as sf
 
 def mount_drive_and_download():
     os.makedirs('data/audio', exist_ok=True)
@@ -34,9 +39,12 @@ def mount_drive_and_download():
     print(f"Total size: {total_size_mb:.2f} MB")
 
 def load_audio(filepath: str) -> tuple[np.ndarray, int]:
-    audio_array, sample_rate = librosa.load(filepath, sr=None, mono=True)
-    
-    duration = librosa.get_duration(y=audio_array, sr=sample_rate)
+    audio_array, sample_rate = sf.read(filepath, always_2d=False)
+    audio_array = np.asarray(audio_array, dtype=np.float32)
+    if audio_array.ndim > 1:
+        audio_array = np.mean(audio_array, axis=1)
+
+    duration = len(audio_array) / sample_rate
     file_size_mb = os.path.getsize(filepath) / (1024 * 1024)
     filename = os.path.basename(filepath)
     

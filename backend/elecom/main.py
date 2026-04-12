@@ -4,6 +4,7 @@ import json
 import traceback
 from typing import Optional
 import numpy as np
+import numba_compat  # noqa: F401
 import librosa
 
 try:

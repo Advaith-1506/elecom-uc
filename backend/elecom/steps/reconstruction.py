@@ -1,6 +1,8 @@
 import os
 import sys
 import numpy as np
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+import numba_compat  # noqa: F401
 import librosa
 import soundfile as sf
 import matplotlib.pyplot as plt

@@ -3,6 +3,8 @@ import sys
 import numpy as np
 import scipy.signal
 import scipy.ndimage
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+import numba_compat  # noqa: F401
 import librosa
 
 # Load config correctly regardless of where the file is imported from
@@ -16,7 +18,7 @@ def estimate_f0_yin(audio_segment: np.ndarray, sr: int) -> np.ndarray:
     """
     Estimates the fundamental frequency (f0) contour of an audio segment using the YIN algorithm.
     """
-    f0 = librosa.yin(audio_segment, fmin=FREQ_MIN, fmax=30.0, sr=sr,
+    f0 = librosa.yin(audio_segment, fmin=FREQ_MIN, fmax=F0_SEARCH_MAX, sr=sr,
                      frame_length=N_FFT, hop_length=HOP_LENGTH)
                      
     # Replace unvoiced logic with NaN
@@ -42,8 +44,9 @@ def detect_multiple_callers(f0_contour: np.ndarray, magnitude: np.ndarray, freq_
     """
     At each time frame, verifies if crossing patterns of overlapping tracks signal a second caller.
     """
-    flag = False
-    
+    frames_with_secondary = 0
+    evaluated_frames = 0
+
     for t in range(magnitude.shape[1]):
         if t >= len(f0_contour):
             break
@@ -51,30 +54,46 @@ def detect_multiple_callers(f0_contour: np.ndarray, magnitude: np.ndarray, freq_
         f0_t = f0_contour[t]
         if np.isnan(f0_t):
             continue
-            
-        mag_t = magnitude[:, t]
-        peaks, _ = scipy.signal.find_peaks(mag_t)
-        
-        # Look for peaks that indicate a separate fundamental harmonic structure
-        unexplained_peaks = 0
-        for p in peaks:
-            peak_freq = freq_bins[p]
-            if FREQ_MIN <= peak_freq <= 200.0:
-                ratio = peak_freq / f0_t
-                dist_to_harmonic = abs(ratio - round(ratio))
-                
-                # Check for strong peak that deviates heavily from current harmonics
-                if dist_to_harmonic > 0.2 and mag_t[p] > np.max(mag_t) * 0.3:
-                    unexplained_peaks += 1
-                    
-        # Multi-caller assumption
-        if unexplained_peaks >= 2:
-            flag = True
-            break
 
+        evaluated_frames += 1
+        mag_t = magnitude[:, t]
+        prominence = max(float(np.max(mag_t)) * MULTI_CALLER_PEAK_PROMINENCE_RATIO, 1e-8)
+        peaks, props = scipy.signal.find_peaks(mag_t, prominence=prominence)
+
+        if len(peaks) == 0:
+            continue
+
+        unexplained_peaks = 0
+        for idx, p in enumerate(peaks):
+            peak_freq = freq_bins[p]
+            if not (FREQ_MIN <= peak_freq <= MULTI_CALLER_MAX_FREQ):
+                continue
+
+            ratio = peak_freq / max(f0_t, 1e-8)
+            nearest_harmonic = max(1.0, round(ratio))
+            dist_to_harmonic = abs(ratio - nearest_harmonic)
+            prominence_value = props["prominences"][idx] if "prominences" in props else 0.0
+
+            # Ignore peaks that look like the expected harmonic ladder or weak broadband leftovers.
+            if dist_to_harmonic <= 0.15:
+                continue
+            if 0.45 <= ratio <= 0.65:
+                continue
+            if prominence_value < prominence * 1.1:
+                continue
+            unexplained_peaks += 1
+
+        if unexplained_peaks >= 2:
+            frames_with_secondary += 1
+
+    frame_ratio = frames_with_secondary / max(evaluated_frames, 1)
+    flag = (
+        evaluated_frames >= MULTI_CALLER_MIN_FRAMES and
+        frame_ratio >= MULTI_CALLER_FRAME_RATIO
+    )
     if flag:
         print("WARNING: Multiple elephant callers detected in this segment")
-        
+
     return flag
 
 def build_harmonic_mask(magnitude: np.ndarray, f0_contour: np.ndarray, freq_bins: np.ndarray) -> np.ndarray:
