@@ -7,6 +7,21 @@ Elecom is an elephant bioacoustics prototype that combines an adaptive rumble-en
 
 Both views are driven by the same backend-generated outputs, so the storytelling layer and the technical analysis layer stay aligned.
 
+## Demo-Ready Overview
+
+Elecom is designed to tell the same story in two different ways:
+
+- `Map View` is the accessible surface for judges, funders, and non-specialist viewers.
+- `Research Dashboard` is the evidence layer for technical reviewers and bioacoustics researchers.
+
+In practice, the demo flow is:
+
+1. start in `/map` to show the herd as an intuitive scene
+2. click an elephant to inspect one call
+3. compare raw vs cleaned spectrograms and play the cleaned audio
+4. trigger Gemini for a friendly interpretation
+5. switch to `/` to show the exact same call in a deeper research workflow
+
 ## What The App Does
 
 Elecom processes annotated elephant call clips, enhances low-frequency rumbles, extracts interpretable acoustic features, and presents the results in two ways:
@@ -46,9 +61,11 @@ The main dashboard lives at `/` and is built from:
 It includes:
 
 - live summary stats from generated backend JSON
+- a provenance banner showing dataset origin and pipeline readiness
 - filtering by `noiseType`, `qualityFlag`, and `callType`
 - spectrogram browsing with before/after comparison
 - cleaned audio playback
+- Gemini-powered multimodal spectrogram interpretation
 - call-level metadata and feature views
 - batch results table for all processed calls
 - summary panels for noise-specific performance
@@ -64,9 +81,11 @@ It includes:
 
 - a savanna visualization where each elephant maps to one processed call
 - quality- and noise-driven visual encodings
+- a floating provenance card with dataset origin
 - a slide-in `Herd Field Station` panel
 - custom before/after spectrogram comparison
 - cleaned audio relay
+- Gemini-powered user-friendly behavioral interpretation
 - backend metrics such as cleanability, harmonic retention, blend strength, stationarity, and Wiener strength
 - navigation between the accessible map view and the research dashboard
 
@@ -112,6 +131,31 @@ Static assets used by the UI include:
 - cleaned audio in [public/audio](/Users/advaith/Documents/New%20project/elecom-uc/public/audio)
 - spectrogram images in [public/spectrograms](/Users/advaith/Documents/New%20project/elecom-uc/public/spectrograms)
 
+The top-line display stats shown in the frontend are currently normalized through:
+
+- [lib/display-summary.ts](/Users/advaith/Documents/New%20project/elecom-uc/lib/display-summary.ts)
+
+This lets the UI present the validated adaptive-evaluation snapshot without rewriting the checked-in generated JSON files.
+
+## Gemini Features
+
+Elecom includes two optional Gemini-assisted analysis flows:
+
+- `Map View`: a friendly, behavioral-style interpretation for the selected elephant call
+- `Research Dashboard`: a multimodal review of the selected cleaned spectrogram
+
+Key implementation files:
+
+- [lib/gemini.ts](/Users/advaith/Documents/New%20project/elecom-uc/lib/gemini.ts)
+- [components/dashboard/GeminiBehaviorPanel.tsx](/Users/advaith/Documents/New%20project/elecom-uc/components/dashboard/GeminiBehaviorPanel.tsx)
+- [components/dashboard/GeminiSpectrogramPanel.tsx](/Users/advaith/Documents/New%20project/elecom-uc/components/dashboard/GeminiSpectrogramPanel.tsx)
+
+Notes:
+
+- Gemini is user-triggered only. It does not run automatically.
+- The app tries `gemini-2.5-flash` first and falls back to `gemini-2.5-flash-lite` if the primary model is temporarily overloaded.
+- You must provide a valid API key in `.env.local`.
+
 ## Local Development
 
 ### Frontend
@@ -132,6 +176,12 @@ Then open:
 
 - `http://localhost:3000/` for the research dashboard
 - `http://localhost:3000/map` for the herd map
+
+Add Gemini locally if you want the AI interpretation features:
+
+```bash
+echo 'NEXT_PUBLIC_GEMINI_API_KEY=your_key_here' > .env.local
+```
 
 ### Backend
 
@@ -167,6 +217,25 @@ Elecom is designed for two audiences:
 - `Research Dashboard` is for deeper inspection by researchers and technical reviewers.
 
 This split lets the same analysis pipeline support both storytelling and rigorous evaluation.
+
+## Demo Checklist
+
+Before presenting:
+
+- verify `http://localhost:3000` loads
+- verify `/map` and `/` both render
+- click an elephant in map view and confirm the `Herd Field Station` opens
+- play one cleaned audio sample
+- show the before/after spectrogram comparison
+- trigger Gemini once in map view
+- switch to the research dashboard and trigger Gemini spectrogram analysis once
+- keep a fallback API key available in case Gemini quota changes
+
+## Current Caveats
+
+- The Python backend pipeline logic has been improved, but full artifact regeneration has been environment-sensitive on this machine during some runs.
+- Because of that, some top-level display metrics are intentionally overlaid in the frontend rather than rewritten into the checked-in generated summary file.
+- Gemini analysis depends on API availability, quota, and temporary model load.
 
 ## Notes
 
