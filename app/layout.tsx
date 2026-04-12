@@ -4,8 +4,8 @@ import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 
 const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], variable: "--font-grotesk" });
-const spaceMono = Space_Mono({ subsets: ["latin"], weights: [400, 700], variable: "--font-mono" });
-const outfit = Outfit({ subsets: ["latin"], weights: [200, 300, 400], variable: "--font-outfit" });
+const spaceMono = Space_Mono({ subsets: ["latin"], weight: ["400", "700"], variable: "--font-mono" });
+const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
 
 export const metadata: Metadata = {
   title: 'ElephantVoices Signal Lab',
