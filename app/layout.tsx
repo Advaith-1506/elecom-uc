@@ -1,10 +1,11 @@
 import type { Metadata } from 'next'
-import { Inter, Geist_Mono } from 'next/font/google'
+import { Space_Grotesk, Space_Mono, Outfit } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
-const _geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono" });
+const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], variable: "--font-grotesk" });
+const spaceMono = Space_Mono({ subsets: ["latin"], weights: [400, 700], variable: "--font-mono" });
+const outfit = Outfit({ subsets: ["latin"], weights: [200, 300, 400], variable: "--font-outfit" });
 
 export const metadata: Metadata = {
   title: 'ElephantVoices Signal Lab',
@@ -36,7 +37,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} font-sans antialiased`}>
+      <body className={`${spaceGrotesk.variable} ${spaceMono.variable} ${outfit.variable} font-outfit antialiased`}>
         {children}
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>

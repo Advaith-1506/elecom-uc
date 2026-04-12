@@ -24,14 +24,14 @@ function MiniBar({ label, count, total, colorClass }: { label: string; count: nu
   const pct = total > 0 ? (count / total) * 100 : 0;
   return (
     <div className="flex items-center gap-2 min-w-0">
-      <span className="text-xs text-muted-foreground capitalize w-16 flex-shrink-0 truncate">{label}</span>
+      <span className="font-body text-muted-foreground capitalize w-16 flex-shrink-0 truncate">{label}</span>
       <div className="flex-1 h-1.5 rounded-full bg-muted/50 overflow-hidden">
         <div
           className={`h-full rounded-full ${colorClass} transition-all duration-700`}
           style={{ width: `${pct}%` }}
         />
       </div>
-      <span className="text-xs font-mono text-muted-foreground w-4 flex-shrink-0">{count}</span>
+      <span className="font-status text-muted-foreground w-4 flex-shrink-0">{count}</span>
     </div>
   );
 }
@@ -56,34 +56,34 @@ export function SummaryStatsBar({ records }: SummaryStatsBarProps) {
 
   return (
     <div className="glass rounded-2xl p-5 flex flex-col gap-4">
-      <h2 className="text-sm font-semibold text-foreground uppercase tracking-widest">
+      <h2 className="font-section-header text-foreground">
         Summary Statistics
       </h2>
 
       <div className="grid grid-cols-3 gap-4">
         {/* Total calls */}
         <div className="flex flex-col items-center gap-1 p-4 rounded-xl bg-primary/5 border border-primary/15">
-          <span className="text-3xl font-bold font-mono text-primary">{stats.total}</span>
-          <span className="text-[10px] text-muted-foreground uppercase tracking-wider text-center">Total Calls Processed</span>
+          <span className="text-3xl font-metric-number text-primary">{stats.total}</span>
+          <span className="font-feature-label text-muted-foreground text-center">Total Calls Processed</span>
         </div>
 
         {/* Avg cleanability */}
         <div className="flex flex-col items-center gap-1 p-4 rounded-xl bg-emerald-400/5 border border-emerald-400/15">
-          <span className="text-3xl font-bold font-mono text-emerald-400">{stats.avgClean.toFixed(0)}</span>
-          <span className="text-[10px] text-muted-foreground uppercase tracking-wider text-center">Avg Cleanability</span>
+          <span className="text-3xl font-metric-number text-emerald-400">{stats.avgClean.toFixed(0)}</span>
+          <span className="font-feature-label text-muted-foreground text-center">Avg Cleanability</span>
         </div>
 
         {/* Avg SNR */}
         <div className="flex flex-col items-center gap-1 p-4 rounded-xl bg-violet-400/5 border border-violet-400/15">
-          <span className="text-3xl font-bold font-mono text-violet-400">+{stats.avgSnr.toFixed(1)}</span>
-          <span className="text-[10px] text-muted-foreground uppercase tracking-wider text-center">Avg SNR Δ (dB)</span>
+          <span className="text-3xl font-metric-number text-violet-400">+{stats.avgSnr.toFixed(1)}</span>
+          <span className="font-feature-label text-muted-foreground text-center">Avg SNR Δ (dB)</span>
         </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* By call type */}
         <div className="flex flex-col gap-2.5">
-          <span className="text-[10px] text-muted-foreground uppercase tracking-wider">By Call Type</span>
+          <span className="font-feature-label text-muted-foreground">By Call Type</span>
           {(["rumble", "trumpet", "roar"] as CallType[]).map((ct) => (
             <MiniBar
               key={ct}
@@ -97,7 +97,7 @@ export function SummaryStatsBar({ records }: SummaryStatsBarProps) {
 
         {/* By noise type */}
         <div className="flex flex-col gap-2.5">
-          <span className="text-[10px] text-muted-foreground uppercase tracking-wider">By Noise Type</span>
+          <span className="font-feature-label text-muted-foreground">By Noise Type</span>
           {(["wind", "vehicle", "rain", "insects"] as NoiseType[]).map((nt) => (
             <MiniBar
               key={nt}

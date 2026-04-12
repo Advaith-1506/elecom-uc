@@ -43,9 +43,9 @@ function MockAudioPlayer({ label }: { label: string }) {
         ))}
       </div>
 
-      <div className="flex items-center gap-1 text-xs text-muted-foreground">
+      <div className="flex items-center gap-1 font-status text-muted-foreground">
         <Volume2 className="w-3 h-3" />
-        <span className="font-mono">{label}</span>
+        <span>{label}</span>
       </div>
     </div>
   );
@@ -60,13 +60,13 @@ export function SpectrogramViewer({
   return (
     <div className="glass rounded-2xl p-5 flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-foreground uppercase tracking-widest">
+        <h2 className="font-section-header text-foreground">
           Spectrogram Viewer
         </h2>
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <span className="font-mono">0–500 Hz</span>
+        <div className="flex items-center gap-2 font-status text-muted-foreground">
+          <span>0–500 Hz</span>
           <div className="h-3 w-px bg-border" />
-          <span className="font-mono">48 kHz SR</span>
+          <span>48 kHz SR</span>
         </div>
       </div>
 
@@ -75,7 +75,7 @@ export function SpectrogramViewer({
         <div className="flex flex-col gap-3">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-amber-400" />
-            <span className="text-xs font-medium text-foreground uppercase tracking-wider">Before Cleaning</span>
+            <span className="font-feature-label text-foreground">Before Cleaning</span>
           </div>
           <div className="relative rounded-xl overflow-hidden border border-border/50 aspect-[2/1] bg-muted/30">
             <Image
@@ -86,11 +86,11 @@ export function SpectrogramViewer({
             />
             {/* Axis labels overlay */}
             <div className="absolute inset-0 flex flex-col justify-between p-2 pointer-events-none">
-              <span className="text-[9px] font-mono text-white/60 self-end">500 Hz</span>
-              <span className="text-[9px] font-mono text-white/60 self-end">0 Hz</span>
+              <span className="font-status text-white/60 self-end">500 Hz</span>
+              <span className="font-status text-white/60 self-end">0 Hz</span>
             </div>
             <div className="absolute bottom-1 right-1 px-1.5 py-0.5 rounded bg-amber-500/20 border border-amber-500/30">
-              <span className="text-[9px] font-mono text-amber-300">Noisy</span>
+              <span className="font-status text-amber-300">Noisy</span>
             </div>
           </div>
           <MockAudioPlayer label="raw.wav" />
@@ -100,7 +100,7 @@ export function SpectrogramViewer({
         <div className="flex flex-col gap-3">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-            <span className="text-xs font-medium text-foreground uppercase tracking-wider">After Cleaning</span>
+            <span className="font-feature-label text-foreground">After Cleaning</span>
           </div>
           <div className="relative rounded-xl overflow-hidden border border-primary/20 aspect-[2/1] bg-muted/30 glow-cyan">
             <Image
@@ -110,11 +110,11 @@ export function SpectrogramViewer({
               className="object-cover"
             />
             <div className="absolute inset-0 flex flex-col justify-between p-2 pointer-events-none">
-              <span className="text-[9px] font-mono text-white/60 self-end">500 Hz</span>
-              <span className="text-[9px] font-mono text-white/60 self-end">0 Hz</span>
+              <span className="font-status text-white/60 self-end">500 Hz</span>
+              <span className="font-status text-white/60 self-end">0 Hz</span>
             </div>
             <div className="absolute bottom-1 right-1 px-1.5 py-0.5 rounded bg-primary/20 border border-primary/30">
-              <span className="text-[9px] font-mono text-primary">Clean</span>
+              <span className="font-status text-primary">Clean</span>
             </div>
           </div>
           <MockAudioPlayer label="clean.wav" />

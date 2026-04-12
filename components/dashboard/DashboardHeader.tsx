@@ -36,10 +36,10 @@ export function DashboardHeader() {
           </svg>
         </div>
         <div>
-          <h1 className="text-xl font-bold tracking-tight text-glow-cyan text-primary">
-            ElephantVoices Signal Lab
+          <h1 className="font-logo text-2xl text-glow-cyan text-primary">
+            Elecom
           </h1>
-          <p className="text-xs text-muted-foreground tracking-widest uppercase">
+          <p className="font-status text-muted-foreground">
             Bioacoustics Analysis Platform
           </p>
         </div>
@@ -51,7 +51,7 @@ export function DashboardHeader() {
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
             <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400" />
           </span>
-          <span className="text-xs text-muted-foreground">Signal Engine Active</span>
+          <span className="font-status text-muted-foreground">Signal Engine Active</span>
         </div>
         <div className="h-4 w-px bg-border" />
         <div className="flex gap-1 items-end h-5">
@@ -69,8 +69,8 @@ export function DashboardHeader() {
         </div>
         <div className="h-4 w-px bg-border" />
         <div className="text-right">
-          <p className="text-xs text-muted-foreground">Session</p>
-          <p className="text-xs font-mono text-primary">EV-2026-0411</p>
+          <p className="font-status text-muted-foreground">Session</p>
+          <p className="font-status text-primary">EV-2026-0411</p>
         </div>
       </div>
     </header>

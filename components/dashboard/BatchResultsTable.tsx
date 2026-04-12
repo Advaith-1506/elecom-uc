@@ -81,10 +81,10 @@ export function BatchResultsTable({ records, selectedId, onSelect }: BatchResult
   return (
     <div className="glass rounded-2xl p-5 flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-foreground uppercase tracking-widest">
+        <h2 className="font-section-header text-foreground">
           Batch Results
         </h2>
-        <span className="text-xs text-muted-foreground font-mono">{records.length} calls</span>
+        <span className="font-status text-muted-foreground">{records.length} calls</span>
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-border/50">
@@ -94,7 +94,7 @@ export function BatchResultsTable({ records, selectedId, onSelect }: BatchResult
               {columns.map((col) => (
                 <th
                   key={col.key}
-                  className={`px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer select-none hover:text-foreground transition-colors ${col.align}`}
+                  className={`px-4 py-3 font-table-header text-muted-foreground cursor-pointer select-none hover:text-foreground transition-colors ${col.align}`}
                   onClick={() => handleSort(col.key)}
                 >
                   <div className={`flex items-center gap-1 ${col.align === "text-right" ? "justify-end" : col.align === "text-center" ? "justify-center" : ""}`}>
@@ -118,23 +118,23 @@ export function BatchResultsTable({ records, selectedId, onSelect }: BatchResult
                       : "hover:bg-muted/20"
                   }`}
                 >
-                  <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                  <td className="px-4 py-3 font-status text-muted-foreground">
                     {record.selection.padStart(3, "0")}
                   </td>
                   <td className="px-4 py-3">
-                    <span className={`font-semibold capitalize ${callTypeColors[record.callType]}`}>
+                    <span className={`font-badge capitalize ${callTypeColors[record.callType]}`}>
                       {record.callType}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground capitalize">{record.noiseType}</td>
-                  <td className="px-4 py-3 text-right font-mono">{record.f0.toFixed(1)}</td>
-                  <td className="px-4 py-3 text-right font-mono">{record.hnrAfter.toFixed(1)}</td>
-                  <td className="px-4 py-3 text-right font-mono text-emerald-400">
+                  <td className="px-4 py-3 font-body text-muted-foreground capitalize">{record.noiseType}</td>
+                  <td className="px-4 py-3 text-right font-status">{record.f0.toFixed(1)}</td>
+                  <td className="px-4 py-3 text-right font-status">{record.hnrAfter.toFixed(1)}</td>
+                  <td className="px-4 py-3 text-right font-status text-emerald-400">
                     +{record.snrImprovement.toFixed(1)}
                   </td>
                   <td className="px-4 py-3 text-center">
                     <span
-                      className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-bold font-mono border ${scoreColor(record.cleanabilityScore)} ${scoreBg(record.cleanabilityScore)}`}
+                      className={`inline-block font-metric-number px-2.5 py-0.5 rounded-full border ${scoreColor(record.cleanabilityScore)} ${scoreBg(record.cleanabilityScore)}`}
                     >
                       {record.cleanabilityScore}
                     </span>

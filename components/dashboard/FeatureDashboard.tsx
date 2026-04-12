@@ -23,15 +23,15 @@ function MetricCard({ label, value, unit, delta, accent = "cyan" }: MetricCardPr
     <div
       className={`glass rounded-xl p-4 border flex flex-col gap-1 ${accentClasses[accent]}`}
     >
-      <span className="text-[10px] uppercase tracking-widest text-muted-foreground">{label}</span>
+      <span className="font-feature-label text-muted-foreground">{label}</span>
       <div className="flex items-end gap-1.5">
-        <span className={`text-2xl font-bold font-mono tabular-nums ${accentClasses[accent].split(" ")[0]}`}>
+        <span className={`text-2xl font-metric-number ${accentClasses[accent].split(" ")[0]}`}>
           {typeof value === "number" ? value.toFixed(value < 100 ? 1 : 0) : value}
         </span>
-        {unit && <span className="text-xs text-muted-foreground mb-0.5">{unit}</span>}
+        {unit && <span className="font-body text-xs text-muted-foreground mb-0.5">{unit}</span>}
       </div>
       {delta && (
-        <span className="text-[10px] text-emerald-400 font-mono">{delta}</span>
+        <span className="font-status text-emerald-400">{delta}</span>
       )}
     </div>
   );
@@ -46,7 +46,7 @@ export function FeatureDashboard({ record }: FeatureDashboardProps) {
 
   return (
     <div className="glass rounded-2xl p-5 flex flex-col gap-4">
-      <h2 className="text-sm font-semibold text-foreground uppercase tracking-widest">
+      <h2 className="font-section-header text-foreground">
         Extracted Features
       </h2>
 

@@ -34,7 +34,7 @@ export function UploadPanel() {
   return (
     <div className="glass rounded-2xl p-5 flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-foreground uppercase tracking-widest">
+        <h2 className="font-section-header text-foreground">
           Upload WAV File
         </h2>
         {file && (
@@ -78,16 +78,16 @@ export function UploadPanel() {
             <Upload className="w-6 h-6 text-primary" />
           </div>
           <div className="text-center">
-            <p className="text-sm text-foreground font-medium">
+            <p className="font-body text-foreground">
               {dragging ? "Release to upload" : "Drag & drop a WAV file"}
             </p>
-            <p className="text-xs text-muted-foreground mt-1">or click to browse</p>
+            <p className="font-body text-muted-foreground mt-1">or click to browse</p>
           </div>
           <div className="flex gap-2 mt-1">
             {["WAV", "AIFF", "FLAC"].map((ext) => (
               <span
                 key={ext}
-                className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground font-mono"
+                className="font-status px-2 py-0.5 rounded-full bg-muted text-muted-foreground"
               >
                 .{ext.toLowerCase()}
               </span>
@@ -100,22 +100,22 @@ export function UploadPanel() {
             <FileAudio className="w-5 h-5 text-primary" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-foreground truncate">{file.name}</p>
+            <p className="font-body text-foreground truncate">{file.name}</p>
             <div className="flex gap-3 mt-0.5">
-              <span className="flex items-center gap-1 text-xs text-muted-foreground">
+              <span className="flex items-center gap-1 font-status text-muted-foreground">
                 <Clock className="w-3 h-3" /> {file.duration}
               </span>
-              <span className="text-xs text-muted-foreground">{file.size}</span>
+              <span className="font-status text-muted-foreground">{file.size}</span>
             </div>
           </div>
           <div className="flex-shrink-0 w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
         </div>
       )}
 
-      <div className="flex gap-2 text-xs text-muted-foreground">
-        <span className="px-2 py-0.5 rounded-full bg-muted/50 font-mono">48 kHz</span>
-        <span className="px-2 py-0.5 rounded-full bg-muted/50 font-mono">16-bit</span>
-        <span className="px-2 py-0.5 rounded-full bg-muted/50 font-mono">Mono / Stereo</span>
+      <div className="flex gap-2 font-status text-muted-foreground">
+        <span className="px-2 py-0.5 rounded-full bg-muted/50">48 kHz</span>
+        <span className="px-2 py-0.5 rounded-full bg-muted/50">16-bit</span>
+        <span className="px-2 py-0.5 rounded-full bg-muted/50">Mono / Stereo</span>
       </div>
     </div>
   );
