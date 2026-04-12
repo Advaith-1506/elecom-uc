@@ -12,6 +12,7 @@ import { CallMetadataRow } from "@/components/dashboard/CallMetadataRow";
 import { BatchResultsTable } from "@/components/dashboard/BatchResultsTable";
 import { SummaryStatsBar } from "@/components/dashboard/SummaryStatsBar";
 import { FilterBar, type FilterState } from "@/components/dashboard/FilterBar";
+import { GeminiSpectrogramPanel } from "@/components/dashboard/GeminiSpectrogramPanel";
 import { getQualityFlag } from "@/lib/dashboard";
 
 const records = featuresData as CallRecord[];
@@ -34,7 +35,7 @@ export default function Home() {
     });
   }, [filters]);
 
-  const activeRecord = filteredRecords.find((record) => record.id === selectedRecord.id) ?? filteredRecords[0] ?? records[0];
+  const activeRecord = filteredRecords.find((record) => record.id === selectedRecord.id) ?? filteredRecords[0] ?? records[0] ?? null;
 
   return (
     <main className="min-h-screen px-4 py-6 md:px-6 lg:px-8">
@@ -44,16 +45,25 @@ export default function Home() {
 
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-[320px_1fr]">
           <UploadPanel />
-          <SpectrogramViewer record={activeRecord} records={filteredRecords} />
+          {activeRecord ? (
+            <div className="flex flex-col gap-5">
+              <SpectrogramViewer record={activeRecord} records={filteredRecords} />
+              <GeminiSpectrogramPanel call={activeRecord} />
+            </div>
+          ) : (
+            <div className="glass rounded-2xl p-6 text-sm text-muted-foreground">
+              No calls match the current filters.
+            </div>
+          )}
         </div>
 
-        <CallMetadataRow record={activeRecord} />
-        <FeatureDashboard record={activeRecord} records={filteredRecords} summary={summary} />
+        {activeRecord ? <CallMetadataRow record={activeRecord} /> : null}
+        {activeRecord ? <FeatureDashboard record={activeRecord} records={filteredRecords} summary={summary} /> : null}
 
         <div className="grid grid-cols-1 gap-5 xl:grid-cols-[1fr_340px]">
           <BatchResultsTable
             records={filteredRecords}
-            selectedId={activeRecord.id}
+            selectedId={activeRecord?.id ?? ""}
             onSelect={setSelectedRecord}
           />
           <SummaryStatsBar records={filteredRecords} summary={summary} />

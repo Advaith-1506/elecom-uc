@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { Headphones, SlidersHorizontal, Volume2, Waves, X } from "lucide-react";
 import { CleanabilityRing } from "@/components/dashboard/CleanabilityRing";
+import { GeminiBehaviorPanel } from "@/components/dashboard/GeminiBehaviorPanel";
 import type { CallRecord, NoiseType, SummaryRecord } from "@/lib/types";
 import {
   getAudioPath,
@@ -426,6 +427,8 @@ export function HerdMapScene({ records, summary }: { records: CallRecord[]; summ
                 </div>
               )}
             </div>
+
+            <GeminiBehaviorPanel call={selected} />
 
             <div className="mt-5 grid gap-3">
               <MetricBar label="harmonic retention" value={`${((selected.harmonicRetention ?? 1) * 100).toFixed(0)}%`} width={percentToRatio(selected.harmonicRetention ?? 1)} tone="linear-gradient(90deg,#b9ffcd,#4dff98)" />
