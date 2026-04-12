@@ -213,11 +213,9 @@ def main():
     os.makedirs("output/features", exist_ok=True)
     
     # Phase validation protocols
-    validate_phase1(df)
-    validate_phase2(df)
+    # validate_phase1(df)
+    # validate_phase2(df)
     
-    print("\n[DEBUG] Stopping after Phase 2 per user request.")
-    sys.exit(0)
     
     print("\n--- Running Full Batch Pipeline ---")
     audio_cache = {}

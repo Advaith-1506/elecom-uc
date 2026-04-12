@@ -14,8 +14,3 @@ next.user-config.*
 node_modules
 .next/
 .DS_Store
-
-# Elecom Backend Data
-backend/elecom/data/audio/
-backend/elecom/data/spectrograms/
-backend/elecom/output/
