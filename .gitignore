@@ -15,3 +15,13 @@ next.user-config.*
 node_modules
 .next/
 .DS_Store
+
+# Local Python tooling and configuration
+.env
+.env.*
+!.env.example
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
